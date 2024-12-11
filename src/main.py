@@ -1,16 +1,30 @@
 import pyxel
 
-class Sprite:
+class HitBox:
+    def __init__(self, name:str, id:int, element:type) -> None:
+        self.name:str = name
+        self.type:str = element.__name__
+        self.id:int = id
+        self.poits:list[list] = [[0,0],[0,0]]
+
+
+class Collision:
+    def __init__(self) -> None:
+        self.listObjects:list[HitBox] = []
     
-    def __init__(self, x:int, y:int, velocity:int):
-        self.x        = x
-        self.y        = y
-        self.velocity = velocity
+    def test(self) -> None:
+        pass        
+
+class Sprite:
+    def __init__(self, x:float, y:float, velocity:float) -> None:
+        self.x:float = x
+        self.y:float = y
+        self.velocity:float = velocity
         
-    def draw(self):
+    def draw(self, frameCout):
         pass
 
-    def update(self):
+    def update(self, ):
         pass
 
     def walk_up(self):
@@ -26,80 +40,103 @@ class Sprite:
         self.x = self.x - self.velocity
 
 
-
 class Player(Sprite):
-    def __init__(self):        
+    def __init__(self) -> None:        
         super().__init__(100, 100, 2)
-        self.sprite = 6
+        self.sprite:int = 6
         
-        self.
-        self.cooldown = True
+        self.inCooldown:bool = False
+        self.colldownTime:float = 30 * 1
+        self.lastShotFrame:int = 0
+    
+    def shot(self, frameCount:int):
+        self.lastShotFrame = frameCount
 
-    def update(self):
-        pass
+    def __cooldownShot(self, frameCount:int):
+        if frameCount >= self.lastShotFrame + self.colldown:
+            self.inCooldown = False
 
-    def draw(self): # Processa a imagem e anição do player
+    def update(self, frameCount:int):
+        self.__cooldownShot(frameCount)
 
-        index_image = (6, 0)
-
+    def draw(self):
+        index_image:tuple = (6, 0)
         pyxel.blt(self.x, self.y, 0, 16 * index_image[0], 16 * index_image[1], 16,16)
-
-class Enemy(Sprite):
-    def __init__(self):
-        pass
-
-
 
 
 class Shot:
-    def __init__(self):
-        self.shots = []
-        
-        self.shot_enemies = []
-
-    def shot(self, posi_x, posi_y, player:bool=True):
-        if player:
-            self.shot_player[0] = posi_x
-            self.shot_player[1] = posi_y
-
-    def calculte_trajectory(self):
-        self.shot_player[1] = self.shot_player[1] - self.player_velocity    
+    def __init__(self, x:float,y:float, velocity:int, player:bool) -> None:
+        self.x:float = x
+        self.y:float = y
+        self.player:bool = player
+        self.velocity:int = velocity
+        self.index_image:tuple = (8, 0)
+    
+    def update(self) -> None:
+        self.y += self.velocity
 
     def draw(self):
-        pyxel.circ(self.shot_player[0], self.shot_player[1], 2, 7)
+        pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16)
+
+
+class ShotList:
+    def __init__(self) -> None:
+        self.shotList:list[Shot] = []
+
+    def shot(self, x:float, y:float, velocity:int, player:bool):
+        self.shotList.append(Shot(x,y,velocity,player))
+
+    def update(self):
+        for i in range(len(self.shotList)):
+            self.shotList[i].update()
+
+    def draw(self):
+        for i in range(len(self.shotList)):
+            self.shotList[i].draw()
+
+    def destroy(self, i:int):
+        if i > 0 and i < len(self.shotList):
+            del self.shotList[i]
 
 
 class App:
     def __init__(self) -> None:
 
-        self.screen_width = 160
-        self.screen_height= 120
+        self.screen_width:int = 160
+        self.screen_height:int = 160
+        self.fps:int = 30
 
-        pyxel.init(self.screen_width, self.screen_height, title="Hello my game")
+        self.frameCout:int = 0
+
+        pyxel.init(self.screen_width, self.screen_height, title="Hello my game", fps=self.fps)
 
         self.load_imagens()
 
-        self.player = Player()
-        self.shot   = Shot(self.screen_width, self.screen_width)
+        # self.collision:Collision = Collision()
+        self.player:Player = Player()
+        self.shotList:ShotList = ShotList()
 
         pyxel.run(self.update, self.draw)
 
     def update(self):
+        self.frameCout = pyxel.frame_count
+
         if pyxel.btnp(pyxel.KEY_ESCAPE):
             pyxel.quit()
 
+        # Update class
+        self.player.update(self.frameCout)
+
+        # Keys
         if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
         if pyxel.btn(pyxel.KEY_RIGHT): self.player.walk_rigth()
+        if pyxel.btnp(pyxel.KEY_SPACE): self.shotList.shot(self.player.x, self.player.y, -4, True)
 
-        if pyxel.btnp(pyxel.KEY_SPACE):
-            self.shot.shot(self.player.x, self.player.y)
-
-        self.shot.calculte_trajectory()
-
-
+        self.shotList.update()
+       
     def draw(self):
-        pyxel.cls(0)
-        self.shot.draw()
+        pyxel.cls(7)
+        self.shotList.draw()
         self.player.draw()
 
 
