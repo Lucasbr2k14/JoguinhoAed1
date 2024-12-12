@@ -5,22 +5,33 @@ class HitBox:
     def __init__(self, element:type, id:int, x:int, y:int, h:int, w:int) -> None:
         self.type:str = element.__name__
         self.id:int = id
-        self.x:int = x
-        self.y:int = y
-        self.x1:int = 0
-        self.y1:int = 0
         self.heigth:int = h
         self.width:int = w
+        self.poits:list = [
+            {'x':0,'y':0},
+            {'x':0,'y':0},
+            {'x':0,'y':0},
+            {'x':0,'y':0}
+        ]
     
     def update(self, x:int, y:int):
-        self.x = x
-        self.y = y; 
-        self.x1 = self.x + self.width
-        self.y1 = self.y + self.heigth
-    
+        self.poits[0]['x'] = x
+        self.poits[0]['y'] = y
+        self.poits[3]['x'] = x + self.width
+        self.poits[3]['y'] = y + self.heigth
+        self.poits[1]['x'] = self.poits[3]['x']
+        self.poits[1]['y'] = self.poits[0]['y']
+        self.poits[2]['x'] = self.poits[0]['x']
+        self.poits[2]['y'] = self.poits[3]['y']
+
+
     def draw(self):
-        pyxel.circ(self.x, self.y, 2, 7)
-        pyxel.circ(self.x1, self.y1, 2, 7)
+        pyxel.circ(self.poits[0]['x'], self.poits[0]['y'], 2, 7)
+        pyxel.circ(self.poits[1]['x'], self.poits[1]['y'], 2, 7)
+        pyxel.circ(self.poits[2]['x'], self.poits[2]['y'], 2, 7)
+        pyxel.circ(self.poits[3]['x'], self.poits[3]['y'], 2, 7)
+
+        
 
 class Collision:
     def __init__(self) -> None:
@@ -63,6 +74,10 @@ class Player(Sprite):
         self.inCooldown:bool = False
         self.colldownTime:float = 30 * 0.5
         self.lastShotFrame:int = 0
+        self.index_image:tuple = (6, 0)
+
+
+        self.hitbox:HitBox = HitBox(type(self), 0, self.x, self.y, 16, 16) 
     
     def shot(self, frameCount:int) -> None:
         self.lastShotFrame = frameCount
@@ -73,12 +88,13 @@ class Player(Sprite):
             self.inCooldown = False
 
     def update(self, frameCount:int) -> None:
+        self.hitbox.update(self.x, self.y)
         self.__cooldownShot(frameCount)
 
     def draw(self) -> None:
-        index_image:tuple = (6, 0)
-        pyxel.blt(self.x, self.y, 0, 16 * index_image[0], 16 * index_image[1], 16,16)
-
+    
+        self.hitbox.draw()
+        pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16)
 
 class Enemy(Sprite):
     def __init__(self, screenHeigth:int, screenWidth:int) -> None:
@@ -107,6 +123,7 @@ class Enemy(Sprite):
         self.hitbox.update(self.x, self.y)
 
     def draw(self) -> None:
+        self.hitbox.draw()
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16)
 
 class EnemyList:
@@ -135,7 +152,6 @@ class Shot:
     def update(self) -> None:
         self.y += self.velocity
         self.hitbox.update(self.x, self.y)
-
     def draw(self):
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0] + 7, 16 * self.index_image[1] + 4, 2,8)
     
@@ -151,16 +167,21 @@ class ShotList:
         self.shotList.append(Shot(x,y,velocity,player, len(self.shotList)))
 
     def update(self):
-        for i in range(len(self.shotList)):
-            self.shotList[i].update()
+        for shot in self.shotList:
+            shot.update()
 
     def draw(self):
-        for i in range(len(self.shotList)):
-            self.shotList[i].draw()
+        for shot in self.shotList:
+            shot.draw()
 
-    def destroy(self, i:int):
-        if i > 0 and i < len(self.shotList):
-            del self.shotList[i]
+        for i in range(len(self.shotList)-1,  0, -1):
+            if self.shotList[i].y >= 160 or self.shotList[i].y <= 0:
+                self.destroy(i)
+
+    def destroy(self, shot:int):
+        print(f"Destroindo {shot }")
+        if shot > 0 and shot < len(self.shotList):
+            del self.shotList[shot]
 
 
 class App:
