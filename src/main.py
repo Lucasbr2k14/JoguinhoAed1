@@ -26,13 +26,10 @@ class HitBox:
 
 
     def draw(self):
-        pyxel.circ(self.poits[0]['x'], self.poits[0]['y'], 2, 7)
-        pyxel.circ(self.poits[1]['x'], self.poits[1]['y'], 2, 7)
-        pyxel.circ(self.poits[2]['x'], self.poits[2]['y'], 2, 7)
-        pyxel.circ(self.poits[3]['x'], self.poits[3]['y'], 2, 7)
-
+        for i in self.poits:
+            pyxel.circ(i['x'], i['y'], 2, 7)
+       
         
-
 class Collision:
     def __init__(self) -> None:
         self.list:list[HitBox] = []
@@ -70,13 +67,10 @@ class Player(Sprite):
     def __init__(self) -> None:        
         super().__init__(100, 160, 2)
         self.sprite:int = 6
-        
         self.inCooldown:bool = False
         self.colldownTime:float = 30 * 0.5
         self.lastShotFrame:int = 0
         self.index_image:tuple = (6, 0)
-
-
         self.hitbox:HitBox = HitBox(type(self), 0, self.x, self.y, 16, 16) 
     
     def shot(self, frameCount:int) -> None:
@@ -92,14 +86,14 @@ class Player(Sprite):
         self.__cooldownShot(frameCount)
 
     def draw(self) -> None:
+        # self.hitbox.draw()
+        pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16, 0)
     
-        self.hitbox.draw()
-        pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16)
 
 class Enemy(Sprite):
-    def __init__(self, screenHeigth:int, screenWidth:int) -> None:
+    def __init__(self, x:float, y:float, screenHeigth:int, screenWidth:int) -> None:
         
-        super().__init__(10, 10, 0.4)
+        super().__init__(x, y, 0.4)
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int  = screenWidth
         self.hitbox = HitBox(type(self), self.x, self.y, 0, 16, 16)
@@ -123,21 +117,29 @@ class Enemy(Sprite):
         self.hitbox.update(self.x, self.y)
 
     def draw(self) -> None:
-        self.hitbox.draw()
-        pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16)
+        # self.hitbox.draw()
+        pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16, 0)
+
 
 class EnemyList:
-    def __init__(self):
+    def __init__(self, screenHeigth:int, screenWidth:int):
         self.listEnemy:list[Enemy] = []
-    
+        self.screenHeigth:int = screenHeigth
+        self.screenWidth:int = screenWidth
+
+
     def update(self):
-        pass
+        for enemy in self.listEnemy:
+            enemy.update()
     
     def draw(self):
-        pass
+        for enemy in self.listEnemy:
+            enemy.draw()
 
     def random_enemy(self):
-        pass
+        x,y = randint(10,160), randint(1,5) * 26
+        self.listEnemy.append(Enemy(x,y,self.screenHeigth, self.screenWidth))
+
 
 class Shot:
     def __init__(self, x:float,y:float, velocity:int, id:int, player:bool) -> None:
@@ -170,18 +172,16 @@ class ShotList:
         for shot in self.shotList:
             shot.update()
 
+        if len(self.shotList) > 0:
+            for i in range(len(self.shotList)-1,  -1, -1):
+                if self.shotList[i].y >= 160 or self.shotList[i].y <= 0: self.destroy(i)
+
     def draw(self):
         for shot in self.shotList:
             shot.draw()
 
-        for i in range(len(self.shotList)-1,  0, -1):
-            if self.shotList[i].y >= 160 or self.shotList[i].y <= 0:
-                self.destroy(i)
-
     def destroy(self, shot:int):
-        print(f"Destroindo {shot }")
-        if shot > 0 and shot < len(self.shotList):
-            del self.shotList[shot]
+        self.shotList.pop(shot)
 
 
 class App:
@@ -200,7 +200,7 @@ class App:
         self.collision:Collision = Collision()
         self.player:Player = Player()
         self.shotList:ShotList = ShotList()
-        self.enemy:Enemy = Enemy(self.screen_height, self.screen_width)
+        self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width)
 
         pyxel.run(self.update, self.draw)
 
@@ -212,24 +212,26 @@ class App:
 
         # Colisions
 
-        # Update class
-        self.player.update(self.frameCout)
-
         # Keys
         if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
         if pyxel.btn(pyxel.KEY_RIGHT): self.player.walk_rigth()
         
+        if pyxel.btnp(pyxel.KEY_RETURN): self.enemyList.random_enemy()
+
         if pyxel.btnp(pyxel.KEY_SPACE) and not self.player.inCooldown: 
             self.shotList.shot(self.player.x+7, self.player.y, -4, True)
             self.player.shot(self.frameCout)
 
-        self.enemy.update()
+
+        # Update class
+        self.player.update(self.frameCout)
+        self.enemyList.update()
         self.shotList.update()
        
     def draw(self):
         pyxel.cls(0)
         self.shotList.draw()
-        self.enemy.draw()
+        self.enemyList.draw()
         self.player.draw()
 
 
