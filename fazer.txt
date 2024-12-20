@@ -1,0 +1,9 @@
+Colldown [OK]
+HUD
+Vida
+Colisão
+Tiros
+Inimigos
+IA dos inimigos 
+Esconder transparencia dos sprites
+ 
