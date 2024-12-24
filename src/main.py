@@ -7,6 +7,7 @@ class HitBox:
         self.id:int = id
         self.heigth:int = h
         self.width:int = w
+        self.destroyHitBox:bool = False
         self.poits:list = [
             {'x':0,'y':0},
             {'x':0,'y':0},
@@ -25,8 +26,15 @@ class HitBox:
         self.poits[2]['y'] = self.poits[3]['y']
 
     def draw(self):
-        for i in self.poits:
-            pyxel.circ(i['x'], i['y'], 2, 7)
+        colors = [5, 2, 7, 3]
+        for i in range(len(self.poits)):
+            pyxel.circ(self.poits[i]['x'], self.poits[i]['y'], 2, colors[i])
+
+    def destroy(self):
+        self.destroyHitBox = True
+
+    def __str__(self):
+        return f"{self.type} id:{self.id}"
 
 
 class Collision:
@@ -34,18 +42,16 @@ class Collision:
         self.list:list[HitBox] = []
     
     def __testTwoElements(self, hitBoxA:HitBox, hitBoxB:HitBox) -> bool:
-        
-        
-        coli = ((hitBoxA.poits[0]['y'] <= hitBoxB.poits[0]['y'] and hitBoxA.poits[2]['y'] <= hitBoxB.poits[0]['y']))
-        
-
-        if (hitBoxA.type == 'Player'):
-            print('a', coli)
-
-
-        if(coli and hitBoxA.type == 'Player'):
-            print("Colisão")
-            
+        poitsColision:list[bool] = [False, False, False, False]
+        for i in range(0,4):
+            poitsVerify:list[bool] = [
+                hitBoxA.poits[0]['y'] <= hitBoxB.poits[i]['y'],
+                hitBoxA.poits[2]['y'] >= hitBoxB.poits[i]['y'],
+                hitBoxA.poits[0]['x'] <= hitBoxB.poits[i]['x'],
+                hitBoxA.poits[1]['x'] >= hitBoxB.poits[i]['x'] 
+            ]
+            poitsColision[i] = (poitsVerify[0] and poitsVerify[1]) and (poitsVerify[2] and poitsVerify[3])
+        return True in poitsColision
 
     def addHitBox(self, hitbox:HitBox):
         self.list.append(hitbox)
@@ -58,11 +64,21 @@ class Collision:
         del self.list[number]
 
     def test(self) -> list[HitBox]:
+        for i in range(len(self.list)-1, -1, -1):
+            if self.list[i].destroyHitBox:
+                self.list.pop(i)
+        
+        listColisionFrame:list[HitBox] = []
+
         for i in range(len(self.list)):
             for j in range(len(self.list)):
                 if(self.list[i] != self.list[j]):
-                    self.__testTwoElements(self.list[i], self.list[j])
-
+                    coli = self.__testTwoElements(self.list[i], self.list[j])
+                    if coli:
+                        listColisionFrame.append([self.list[i], self.list[j]])
+        
+        return listColisionFrame
+    
 
 class Sprite:
     def __init__(self, x:float, y:float, velocity:float) -> None:
@@ -92,6 +108,8 @@ class Sprite:
 class Player(Sprite):
     def __init__(self) -> None:        
         super().__init__(100, 160, 2)
+        self.lives:int = 3
+        self.poits:int = 0
         self.sprite:int = 6
         self.inCooldown:bool = False
         self.colldownTime:float = 30 * 0.5
@@ -115,38 +133,41 @@ class Player(Sprite):
         return self.hitbox
 
     def draw(self) -> None:
-        self.hitbox.draw()
+        # self.hitbox.draw()
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16, 0)
 
 
 class Enemy(Sprite):
-    def __init__(self, x:float, y:float, screenHeigth:int, screenWidth:int) -> None:
+    def __init__(self, x:float, y:float, id:int, screenHeigth:int, screenWidth:int) -> None:
         
         super().__init__(x, y, 0.4)
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int  = screenWidth
-        self.hitbox = HitBox(type(self), self.x, self.y, 0, 16, 16)
+        self.id = id
+        self.hitbox = HitBox(type(self), self.id, self.x, self.y, 16, 16)
         self.index_image = (0,0)
-
         self.walk = 0
 
     def update(self) -> None:
         
-        # if self.x + 16 >= 200:
-        #     self.walk = 1
+        if self.x + 16 >= 200:
+            self.walk = 1
 
-        # if self.x <= 0:
-        #     self.walk = 0
+        if self.x <= 0:
+            self.walk = 0
 
-        # if self.walk == 0:
-        #     self.walk_rigth()
-        # else:
-        #     self.walk_left()
+        if self.walk == 0:
+            self.walk_rigth()
+        else:
+            self.walk_left()
 
         self.hitbox.update(self.x, self.y)
 
+    def destroy(self):
+        self.hitbox.destroy()
+
     def draw(self) -> None:
-        self.hitbox.draw()
+        # self.hitbox.draw()
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16,0)
 
 
@@ -155,19 +176,27 @@ class EnemyList:
         self.listEnemy:list[Enemy] = []
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int = screenWidth
+        self.id:int = 0
 
     def update(self):
         for enemy in self.listEnemy:
             enemy.update()
     
+    def destroy(self, id:int):
+        for i in range(len(self.listEnemy)-1, -1, -1):
+            if self.listEnemy[i].id == id:
+                self.listEnemy[i].destroy()
+                self.listEnemy.pop(i)
+
     def draw(self):
         for enemy in self.listEnemy:
             enemy.draw()
 
     def randomEnemy(self):
         x,y = randint(10,160), randint(1,5) * 26
-        enemy = Enemy(x,y,self.screenHeigth, self.screenWidth)
+        enemy = Enemy(x,y,self.id, self.screenHeigth, self.screenWidth)
         self.listEnemy.append(enemy)
+        self.id += 1
         return enemy.hitbox
 
 
@@ -178,12 +207,15 @@ class Shot:
         self.id:int  = id
         self.player:bool = player
         self.velocity:int = velocity
-        self.hitbox = HitBox(type(self), x ,y ,id , 8, 2)
+        self.hitbox = HitBox(type(self), self.id, x ,y, 8, 2)
         self.index_image:tuple = (8, 0)
     
     def update(self) -> None:
         self.y += self.velocity
         self.hitbox.update(self.x, self.y)
+
+    def destory(self) -> None:
+        self.hitbox.destroy()
 
     def draw(self):
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0] + 7, 16 * self.index_image[1] + 4, 2,8)
@@ -199,32 +231,33 @@ class ShotList:
 
     def shot(self, x:float, y:float, velocity:int, player:bool):
         self.id += 1
-        shot = Shot(x,y,velocity,player, self.id)
+        shot = Shot(x,y,velocity, self.id, player)
         self.shotList.append(shot)
         return shot.hitbox
 
-    def update(self):
+    def update(self) -> None:
         for shot in self.shotList:
             shot.update()
 
         if len(self.shotList) > 0:
             for i in range(len(self.shotList)-1,  -1, -1):
-                if self.shotList[i].y >= 160 or self.shotList[i].y <= 0: self.destroy(i)
+                if self.shotList[i].y >= 200 or self.shotList[i].y <= 0:
+                    self.destroy(self.shotList[i].id)
 
     def draw(self):
         for shot in self.shotList:
             shot.draw()
 
-    def getHitBoxs(self) -> list[HitBox]:
-        hitboxs = []
-
+    def getByid(self, id:int) -> Shot:
         for i in range(len(self.shotList)):
-            hitboxs.append(self.shotList[i].hitbox)
+            if self.shotList[i].id == id:
+                return self.shotList[i]
 
-        return hitboxs
-
-    def destroy(self, shot:int):
-        self.shotList.pop(shot)
+    def destroy(self, id:int) -> None:
+        for i in range(len(self.shotList)-1, -1, -1):
+            if self.shotList[i].id == id:
+                self.shotList[i].destory()
+                self.shotList.pop(i)
 
 
 class App:
@@ -250,15 +283,22 @@ class App:
         pyxel.run(self.update, self.draw)
 
     def update(self):
-        self.frameCout = pyxel.frame_count
-        print("Frame count:", self.frameCout)    
+        self.frameCout = pyxel.frame_count  
 
         if pyxel.btnp(pyxel.KEY_ESCAPE):
             pyxel.quit()
 
         # Colision test
 
-        self.collision.test()
+        colisionList:list[list:[HitBox]] = self.collision.test()
+
+        for i in range(len(colisionList)):
+            if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Shot":
+                if(self.shotList.getByid(colisionList[i][1].id).player):
+                    self.enemyList.destroy(colisionList[i][0].id)
+                    self.shotList.destroy(colisionList[i][1].id)
+                    self.player.poits += 10
+                    print(self.player.poits)
 
         # Keys
         if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
@@ -274,9 +314,6 @@ class App:
             shot = self.shotList.shot(self.player.x+7, self.player.y, -4, True)
             self.collision.addHitBox(shot)
             self.player.shot(self.frameCout)
-
-        print(len(self.collision.list))
-
 
         # Update class
         self.player.update(self.frameCout)
