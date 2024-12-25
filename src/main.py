@@ -151,10 +151,10 @@ class Enemy(Sprite):
     def update(self) -> None:
         
         if self.x + 16 >= 200:
-            self.walk = 1
+            self.walk = not self.walk
 
         if self.x <= 0:
-            self.walk = 0
+            self.walk = not self.walk
 
         if self.walk == 0:
             self.walk_rigth()
@@ -220,8 +220,6 @@ class Shot:
     def draw(self):
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0] + 7, 16 * self.index_image[1] + 4, 2,8)
     
-    def getHitbox(self) -> HitBox:
-        return self.hitbox
 
 
 class ShotList:
@@ -248,10 +246,11 @@ class ShotList:
         for shot in self.shotList:
             shot.draw()
 
-    def getByid(self, id:int) -> Shot:
+    def getByid(self, id:int) -> Shot | None:
         for i in range(len(self.shotList)):
             if self.shotList[i].id == id:
                 return self.shotList[i]
+        return None
 
     def destroy(self, id:int) -> None:
         for i in range(len(self.shotList)-1, -1, -1):
@@ -259,6 +258,13 @@ class ShotList:
                 self.shotList[i].destory()
                 self.shotList.pop(i)
 
+class HUD:
+    def __init__(self, screen_wdth:int, scren_heigth:int):
+        pass
+    
+    
+    def draw(self):
+        pass
 
 class App:
     def __init__(self) -> None:
@@ -273,6 +279,7 @@ class App:
 
         self.load_imagens()
 
+        self.hud:HUD = HUD(self.screen_height, self.screen_width)
         self.player:Player = Player()
         self.shotList:ShotList = ShotList()
         self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width)
@@ -294,17 +301,18 @@ class App:
 
         for i in range(len(colisionList)):
             if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Shot":
-                if(self.shotList.getByid(colisionList[i][1].id).player):
+                if(self.shotList.getByid(colisionList[i][1].id) != None and self.shotList.getByid(colisionList[i][1].id).player):
                     self.enemyList.destroy(colisionList[i][0].id)
                     self.shotList.destroy(colisionList[i][1].id)
-                    self.player.poits += 10
-                    print(self.player.poits)
+
+            if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy":
+                pass
 
         # Keys
         if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
         if pyxel.btn(pyxel.KEY_RIGHT): self.player.walk_rigth()
-        if pyxel.btn(pyxel.KEY_UP): self.player.walk_up()
-        if pyxel.btn(pyxel.KEY_DOWN): self.player.walk_down()
+        # if pyxel.btn(pyxel.KEY_UP): self.player.walk_up()
+        # if pyxel.btn(pyxel.KEY_DOWN): self.player.walk_down()
 
         if pyxel.btnp(pyxel.KEY_RETURN): 
             enemy = self.enemyList.randomEnemy()
