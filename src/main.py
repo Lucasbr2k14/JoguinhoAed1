@@ -178,10 +178,23 @@ class EnemyList:
         self.screenWidth:int = screenWidth
         self.id:int = 0
 
+    def randomEnemy(self):
+        x,y = randint(10,160), randint(1,5) * 26
+        enemy = Enemy(x,y,self.id, self.screenHeigth, self.screenWidth)
+        self.listEnemy.append(enemy)
+        self.id += 1
+        return enemy.hitbox
+
     def update(self):
         for enemy in self.listEnemy:
             enemy.update()
-    
+
+
+    def getById(self, id:int) -> Enemy:
+        for i in range(len(self.listEnemy)):
+            if self.listEnemy[i].id == id:
+                return self.listEnemy[i]
+
     def destroy(self, id:int):
         for i in range(len(self.listEnemy)-1, -1, -1):
             if self.listEnemy[i].id == id:
@@ -191,13 +204,6 @@ class EnemyList:
     def draw(self):
         for enemy in self.listEnemy:
             enemy.draw()
-
-    def randomEnemy(self):
-        x,y = randint(10,160), randint(1,5) * 26
-        enemy = Enemy(x,y,self.id, self.screenHeigth, self.screenWidth)
-        self.listEnemy.append(enemy)
-        self.id += 1
-        return enemy.hitbox
 
 
 class Shot:
@@ -220,7 +226,6 @@ class Shot:
     def draw(self):
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0] + 7, 16 * self.index_image[1] + 4, 2,8)
     
-
 
 class ShotList:
     def __init__(self) -> None:
@@ -297,7 +302,7 @@ class App:
 
         # Colision test
 
-        colisionList:list[list:[HitBox]] = self.collision.test()
+        colisionList:list[list[HitBox]] = self.collision.test()
 
         for i in range(len(colisionList)):
             if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Shot":
@@ -306,8 +311,11 @@ class App:
                     self.shotList.destroy(colisionList[i][1].id)
 
             if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy":
-                pass
-
+                enemy1 = self.enemyList.getById(colisionList[i][0].id)
+                enemy2 = self.enemyList.getById(colisionList[i][1].id)
+                enemy1.walk = randint(0,1)
+                enemy2.walk = randint(0,1)
+                
         # Keys
         if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
         if pyxel.btn(pyxel.KEY_RIGHT): self.player.walk_rigth()
