@@ -116,6 +116,10 @@ class Player(Sprite):
         self.lastShotFrame:int = 0
         self.index_image:tuple = (6, 0)
         self.hitbox:HitBox = HitBox(type(self), 0, self.x, self.y, 16, 16) 
+
+    def update(self, frameCount:int) -> None:
+        self.hitbox.update(self.x, self.y)
+        self.__cooldownShot(frameCount)
     
     def shot(self, frameCount:int) -> None:
         self.lastShotFrame = frameCount
@@ -125,36 +129,29 @@ class Player(Sprite):
         if (frameCount >= self.lastShotFrame + self.colldownTime) and self.inCooldown:
             self.inCooldown = False
 
-    def update(self, frameCount:int) -> None:
-        self.hitbox.update(self.x, self.y)
-        self.__cooldownShot(frameCount)
-
-    def getHitbox(self):
-        return self.hitbox
-
     def draw(self) -> None:
         # self.hitbox.draw()
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16, 0)
 
 
 class Enemy(Sprite):
-    def __init__(self, x:float, y:float, id:int, screenHeigth:int, screenWidth:int) -> None:
-        
+    def __init__(self, enemy:int, x:float, y:float, id:int, screenHeigth:int, screenWidth:int) -> None:
         super().__init__(x, y, 0.4)
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int  = screenWidth
-        self.id = id
-        self.hitbox = HitBox(type(self), self.id, self.x, self.y, 16, 16)
-        self.index_image = (0,0)
-        self.walk = 0
-
+        self.id:int = id
+        self.type:int = enemy
+        self.hitbox:HitBox = HitBox(type(self), self.id, self.x, self.y, 16, 16)
+        self.index_image:list = [0,0]
+        self.walk:int = 0
+        
     def update(self) -> None:
         
         if self.x + 16 >= 200:
-            self.walk = not self.walk
+            self.walk = int(not self.walk)
 
         if self.x <= 0:
-            self.walk = not self.walk
+            self.walk = int(not self.walk)
 
         if self.walk == 0:
             self.walk_rigth()
@@ -166,8 +163,10 @@ class Enemy(Sprite):
     def destroy(self):
         self.hitbox.destroy()
 
-    def draw(self) -> None:
+
+    def draw(self, frameCount:int, frameRate:int) -> None:
         # self.hitbox.draw()
+        self.index_image[0] = (self.type * 2) + int(frameCount/(frameRate/4) % 2)
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16,0)
 
 
@@ -180,7 +179,9 @@ class EnemyList:
 
     def randomEnemy(self):
         x,y = randint(10,160), randint(1,5) * 26
-        enemy = Enemy(x,y,self.id, self.screenHeigth, self.screenWidth)
+        enemyType = randint(0,2)
+        print(enemyType)
+        enemy = Enemy(enemyType, x,y,self.id, self.screenHeigth, self.screenWidth)
         self.listEnemy.append(enemy)
         self.id += 1
         return enemy.hitbox
@@ -201,9 +202,9 @@ class EnemyList:
                 self.listEnemy[i].destroy()
                 self.listEnemy.pop(i)
 
-    def draw(self):
+    def draw(self, frameCount:int, frameRate:int):
         for enemy in self.listEnemy:
-            enemy.draw()
+            enemy.draw(frameCount, frameRate)
 
 
 class Shot:
@@ -271,16 +272,16 @@ class HUD:
     def draw(self):
         pass
 
-class App:
+class Game:
     def __init__(self) -> None:
 
         self.screen_width:int = 200
         self.screen_height:int = 200
-        self.fps:int = 30
+        self.frameRate:int = 30
 
         self.frameCout:int = 0
 
-        pyxel.init(self.screen_width, self.screen_height, title="Hello my game", fps=self.fps)
+        pyxel.init(self.screen_width, self.screen_height, title="Hello my game", fps=self.frameRate)
 
         self.load_imagens()
 
@@ -290,7 +291,7 @@ class App:
         self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width)
         self.collision:Collision = Collision()
 
-        self.collision.addHitBox(self.player.getHitbox())
+        self.collision.addHitBox(self.player.hitbox)
 
         pyxel.run(self.update, self.draw)
 
@@ -310,17 +311,16 @@ class App:
                     self.enemyList.destroy(colisionList[i][0].id)
                     self.shotList.destroy(colisionList[i][1].id)
 
-            if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy":
-                enemy1 = self.enemyList.getById(colisionList[i][0].id)
-                enemy2 = self.enemyList.getById(colisionList[i][1].id)
-                enemy1.walk = randint(0,1)
-                enemy2.walk = randint(0,1)
+            # if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy":
+            #     enemy1 = self.enemyList.getById(colisionList[i][0].id)
+            #     enemy2 = self.enemyList.getById(colisionList[i][1].id)
+            #     enemy1.walk = randint(0,1)
+            #     enemy2.walk = randint(0,1)
                 
         # Keys
         if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
         if pyxel.btn(pyxel.KEY_RIGHT): self.player.walk_rigth()
-        # if pyxel.btn(pyxel.KEY_UP): self.player.walk_up()
-        # if pyxel.btn(pyxel.KEY_DOWN): self.player.walk_down()
+
 
         if pyxel.btnp(pyxel.KEY_RETURN): 
             enemy = self.enemyList.randomEnemy()
@@ -339,11 +339,11 @@ class App:
     def draw(self):
         pyxel.cls(0)
         self.shotList.draw()
-        self.enemyList.draw()
+        self.enemyList.draw(self.frameCout, self.frameRate)
         self.player.draw()
 
 
     def load_imagens(self):
         pyxel.images[0].load(0, 0, "../SpritesSheets/Sprites.png")
 
-App()
+Game()
