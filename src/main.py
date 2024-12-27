@@ -134,6 +134,12 @@ class Player(Sprite):
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16, 0)
 
 
+class Boss(Sprite):
+    def __init__(self):
+        super().__init__()
+        pass
+
+
 class Enemy(Sprite):
     def __init__(self, enemy:int, x:float, y:float, id:int, screenHeigth:int, screenWidth:int) -> None:
         super().__init__(x, y, 0.4)
@@ -163,7 +169,6 @@ class Enemy(Sprite):
     def destroy(self):
         self.hitbox.destroy()
 
-
     def draw(self, frameCount:int, frameRate:int) -> None:
         # self.hitbox.draw()
         self.index_image[0] = (self.type * 2) + int(frameCount/(frameRate/4) % 2)
@@ -175,36 +180,46 @@ class EnemyList:
         self.listEnemy:list[Enemy] = []
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int = screenWidth
+        self.destroyList:list[int] = []
         self.id:int = 0
 
     def randomEnemy(self):
         x,y = randint(10,160), randint(1,5) * 26
         enemyType = randint(0,2)
-        print(enemyType)
         enemy = Enemy(enemyType, x,y,self.id, self.screenHeigth, self.screenWidth)
         self.listEnemy.append(enemy)
         self.id += 1
         return enemy.hitbox
 
     def update(self):
+    
+        self.__deleteClass()
+
         for enemy in self.listEnemy:
             enemy.update()
-
 
     def getById(self, id:int) -> Enemy:
         for i in range(len(self.listEnemy)):
             if self.listEnemy[i].id == id:
                 return self.listEnemy[i]
 
-    def destroy(self, id:int):
-        for i in range(len(self.listEnemy)-1, -1, -1):
-            if self.listEnemy[i].id == id:
-                self.listEnemy[i].destroy()
-                self.listEnemy.pop(i)
 
     def draw(self, frameCount:int, frameRate:int):
         for enemy in self.listEnemy:
             enemy.draw(frameCount, frameRate)
+
+    def destroy(self, id:int) -> None:
+        self.destroyList.append(id)
+
+    def __deleteClass(self) -> None:        
+        if len(self.destroyList) > 0:
+            for i in range(len(self.destroyList)-1, -1, -1):
+                id = self.destroyList[i]
+                for j in range(len(self.listEnemy)-1, -1, -1):
+                    if self.listEnemy[j].id == id:
+                        self.listEnemy[j].destroy()
+                        self.listEnemy.pop(j)
+            self.destroyList.pop(i)
 
 
 class Shot:
@@ -231,6 +246,7 @@ class Shot:
 class ShotList:
     def __init__(self) -> None:
         self.shotList:list[Shot] = []
+        self.destroyList:list[int] = []
         self.id = 0
 
     def shot(self, x:float, y:float, velocity:int, player:bool):
@@ -240,13 +256,17 @@ class ShotList:
         return shot.hitbox
 
     def update(self) -> None:
+
+        self.__deleteClass()
+
+
         for shot in self.shotList:
             shot.update()
 
         if len(self.shotList) > 0:
-            for i in range(len(self.shotList)-1,  -1, -1):
-                if self.shotList[i].y >= 200 or self.shotList[i].y <= 0:
-                    self.destroy(self.shotList[i].id)
+            for j in range(len(self.shotList)-1,  -1, -1):
+                if self.shotList[j].y >= 200 or self.shotList[j].y <= 0:
+                    self.destroy(self.shotList[j].id)
 
     def draw(self):
         for shot in self.shotList:
@@ -259,15 +279,21 @@ class ShotList:
         return None
 
     def destroy(self, id:int) -> None:
-        for i in range(len(self.shotList)-1, -1, -1):
-            if self.shotList[i].id == id:
-                self.shotList[i].destory()
-                self.shotList.pop(i)
+        self.destroyList.append(id)
+
+    def __deleteClass(self) -> None:        
+        if len(self.destroyList) > 0:
+            for i in range(len(self.destroyList)-1, -1, -1):
+                id = self.destroyList[i]
+                for j in range(len(self.shotList)-1, -1, -1):
+                    if self.shotList[j].id == id:
+                        self.shotList[j].destory()
+                        self.shotList.pop(j)
+            self.destroyList.pop(i)
 
 class HUD:
     def __init__(self, screen_wdth:int, scren_heigth:int):
         pass
-    
     
     def draw(self):
         pass
@@ -307,15 +333,16 @@ class Game:
 
         for i in range(len(colisionList)):
             if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Shot":
-                if(self.shotList.getByid(colisionList[i][1].id) != None and self.shotList.getByid(colisionList[i][1].id).player):
+                if(self.shotList.getByid(colisionList[i][1].id).player):
                     self.enemyList.destroy(colisionList[i][0].id)
                     self.shotList.destroy(colisionList[i][1].id)
 
-            # if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy":
-            #     enemy1 = self.enemyList.getById(colisionList[i][0].id)
-            #     enemy2 = self.enemyList.getById(colisionList[i][1].id)
-            #     enemy1.walk = randint(0,1)
-            #     enemy2.walk = randint(0,1)
+            if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy":
+                enemy1 = self.enemyList.getById(colisionList[i][0].id)
+                enemy2 = self.enemyList.getById(colisionList[i][1].id)
+                enemy1.walk = int(not enemy1.walk)
+                enemy2.walk = int(not enemy2.walk)
+
                 
         # Keys
         if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
