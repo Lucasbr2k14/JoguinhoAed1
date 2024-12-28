@@ -66,7 +66,7 @@ class Enemy(Sprite):
         super().__init__(x, y, 0.4)
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int  = screenWidth
-        self.cooldownShot:int | float =  30 * 0.5
+        self.cooldownShot:float =  30 * 0.5
         self.id:int = id
         self.type:int = enemy
         self.hitbox:HitBox = HitBox(type(self), self.id, self.x, self.y, 16, 16)
@@ -74,22 +74,18 @@ class Enemy(Sprite):
         self.walk:int = 0
 
     def update(self) -> None:
-        
         if self.x + 16 >= 200:
             self.walk = int(not self.walk)
-
         if self.x <= 0:
             self.walk = int(not self.walk)
-
         if self.walk == 0:
             self.walk_rigth()
         else:
             self.walk_left()
-
         self.hitbox.update(self.x, self.y)
 
-    def shot(self, playerX:int, playerY:int):
-        if playerX >= self.x:
+    def shot(self, playerX:int, playerY:int, playerWidth:int):
+        if playerX >= self.x and playerX-16 <= self.x:
             print('shot')
 
     def destroy(self):

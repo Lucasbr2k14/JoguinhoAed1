@@ -11,11 +11,11 @@ class Game:
 
         self.load_imagens()
 
-        self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width)
-        self.hud:HUD = HUD(self.screen_height, self.screen_width)
-        self.collision:Collision = Collision()
         self.shotList:ShotList = ShotList()
         self.player:Player = Player()
+        self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player)
+        self.hud:HUD = HUD(self.screen_height, self.screen_width)
+        self.collision:Collision = Collision()
 
         self.collision.addHitBox(self.player.hitbox)
 
@@ -37,7 +37,7 @@ class Game:
         if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
         if pyxel.btn(pyxel.KEY_RIGHT): self.player.walk_rigth()
 
-        if pyxel.btnp(pyxel.KEY_RETURN): 
+        if pyxel.btnp(pyxel.KEY_RETURN):
             enemy = self.enemyList.randomEnemy()
             self.collision.addHitBox(enemy.hitbox)
 

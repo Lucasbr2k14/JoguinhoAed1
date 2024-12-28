@@ -1,9 +1,10 @@
 from random import randint
-from sprites import Enemy
+from sprites import Enemy, Player
 from shot import Shot
 
 class EnemyList:
-    def __init__(self, screenHeigth:int, screenWidth:int):
+    def __init__(self, screenHeigth:int, screenWidth:int, player:Player):
+        self.player:Player = player
         self.listEnemy:list[Enemy] = []
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int = screenWidth
@@ -19,10 +20,9 @@ class EnemyList:
         return enemy
 
     def update(self):
-    
         self.__deleteClass()
-
         for enemy in self.listEnemy:
+            enemy.shot(self.player.x, self.player.y, 16)
             enemy.update()
 
     def getById(self, id:int) -> Enemy:
