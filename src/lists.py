@@ -10,13 +10,13 @@ class EnemyList:
         self.destroyList:list[int] = []
         self.id:int = 0
 
-    def randomEnemy(self):
+    def randomEnemy(self) -> Enemy:
         x,y = randint(10,160), randint(1,5) * 26
         enemyType = randint(0,2)
         enemy = Enemy(enemyType, x,y,self.id, self.screenHeigth, self.screenWidth)
         self.listEnemy.append(enemy)
         self.id += 1
-        return enemy.hitbox
+        return enemy
 
     def update(self):
     

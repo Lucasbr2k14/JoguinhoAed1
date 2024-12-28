@@ -70,8 +70,8 @@ class Collision:
             for j in range(len(self.list)):
                 if(self.list[i] != self.list[j]):
                     coli = self.__testTwoElements(self.list[i], self.list[j])
-                    if coli:
+                    if coli and (not [self.list[j], self.list[i]] in listColisionFrame):
                         listColisionFrame.append([self.list[i], self.list[j]])
-        
+
         return listColisionFrame
 
