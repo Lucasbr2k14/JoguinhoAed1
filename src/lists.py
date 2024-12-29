@@ -2,52 +2,6 @@ from random import randint
 from sprites import Enemy, Player
 from shot import Shot
 
-class EnemyList:
-    def __init__(self, screenHeigth:int, screenWidth:int, player:Player):
-        self.player:Player = player
-        self.listEnemy:list[Enemy] = []
-        self.screenHeigth:int = screenHeigth
-        self.screenWidth:int = screenWidth
-        self.destroyList:list[int] = []
-        self.id:int = 0
-
-    def randomEnemy(self) -> Enemy:
-        x,y = randint(10,160), randint(1,5) * 26
-        enemyType = randint(0,2)
-        enemy = Enemy(enemyType, x,y,self.id, self.screenHeigth, self.screenWidth)
-        self.listEnemy.append(enemy)
-        self.id += 1
-        return enemy
-
-    def update(self):
-        self.__deleteClass()
-        for enemy in self.listEnemy:
-            enemy.shot(self.player.x, self.player.y, 16)
-            enemy.update()
-
-    def getById(self, id:int) -> Enemy:
-        for i in range(len(self.listEnemy)):
-            if self.listEnemy[i].id == id:
-                return self.listEnemy[i]
-
-    def draw(self, frameCount:int, frameRate:int):
-        for enemy in self.listEnemy:
-            enemy.draw(frameCount, frameRate)
-
-    def destroy(self, id:int) -> None:
-        self.destroyList.append(id)
-
-    def __deleteClass(self) -> None:        
-        if len(self.destroyList) > 0:
-            for i in range(len(self.destroyList)-1, -1, -1):
-                id = self.destroyList[i]
-                for j in range(len(self.listEnemy)-1, -1, -1):
-                    if self.listEnemy[j].id == id:
-                        self.listEnemy[j].destroy()
-                        self.listEnemy.pop(j)
-            self.destroyList.pop(i)
-
-
 class ShotList:
     def __init__(self) -> None:
         self.shotList:list[Shot] = []
@@ -91,3 +45,52 @@ class ShotList:
                         self.shotList[j].destory()
                         self.shotList.pop(j)
             self.destroyList.pop(i)
+
+
+class EnemyList:
+    def __init__(self, screenHeigth:int, screenWidth:int, player:Player, shotList:ShotList):
+        self.player:Player = player
+        self.listEnemy:list[Enemy] = []
+        self.screenHeigth:int = screenHeigth
+        self.screenWidth:int = screenWidth
+        self.destroyList:list[int] = []
+        self.shotList:ShotList = shotList
+        self.id:int = 0
+
+    def randomEnemy(self) -> Enemy:
+        x,y = randint(10,160), randint(1,5) * 26
+        enemyType = randint(0,2)
+        enemy = Enemy(enemyType, x,y,self.id, self.screenHeigth, self.screenWidth)
+        self.listEnemy.append(enemy)
+        self.id += 1
+        return enemy
+
+    def update(self):
+        self.__deleteClass()
+        for enemy in self.listEnemy:
+            enemy.shot(self.player.x, self.player.y, self.shotList)
+            enemy.update()
+
+    def getById(self, id:int) -> Enemy:
+        for i in range(len(self.listEnemy)):
+            if self.listEnemy[i].id == id:
+                return self.listEnemy[i]
+
+    def draw(self, frameCount:int, frameRate:int):
+        for enemy in self.listEnemy:
+            enemy.draw(frameCount, frameRate)
+
+    def destroy(self, id:int) -> None:
+        self.destroyList.append(id)
+
+    def __deleteClass(self) -> None:        
+        if len(self.destroyList) > 0:
+            for i in range(len(self.destroyList)-1, -1, -1):
+                id = self.destroyList[i]
+                for j in range(len(self.listEnemy)-1, -1, -1):
+                    if self.listEnemy[j].id == id:
+                        self.listEnemy[j].destroy()
+                        self.listEnemy.pop(j)
+            self.destroyList.pop(i)
+
+

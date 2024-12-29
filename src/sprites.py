@@ -1,4 +1,5 @@
 import pyxel
+from random import randint
 from colision import HitBox
 
 class Sprite:
@@ -84,9 +85,10 @@ class Enemy(Sprite):
             self.walk_left()
         self.hitbox.update(self.x, self.y)
 
-    def shot(self, playerX:int, playerY:int, playerWidth:int):
-        if playerX >= self.x and playerX-16 <= self.x:
-            print('shot')
+    def shot(self, playerX:int, playerY:int, shotList):
+        shot = 1 == randint(1, 100)
+        if playerX >= self.x and playerX-16 <= self.x and shot:
+            shotList.shot(self.x, self.y, 2, False)
 
     def destroy(self):
         self.hitbox.destroy()

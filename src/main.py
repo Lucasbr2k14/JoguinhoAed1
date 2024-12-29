@@ -13,7 +13,7 @@ class Game:
 
         self.shotList:ShotList = ShotList()
         self.player:Player = Player()
-        self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player)
+        self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player, self.shotList)
         self.hud:HUD = HUD(self.screen_height, self.screen_width)
         self.collision:Collision = Collision()
 
