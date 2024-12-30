@@ -19,9 +19,9 @@ class Game:
 
         self.shotList:ShotList = ShotList()
         self.player:Player = Player()
-        self.hud:HUD = HUD(self.screen_height, self.screen_width)
         self.collision:Collision = Collision()
         self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player, self.shotList, self.collision)
+        self.hud:HUD = HUD(self.screen_width, self.screen_height, self.player)
 
         self.collision.addHitBox(self.player.hitbox)
 
@@ -54,7 +54,6 @@ class Game:
 
     def colision(self):
         colisionList:list[list[HitBox]] = self.collision.test()
-        print(colisionList)
         for i in range(len(colisionList)):
             if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Shot":
                 if(self.shotList.getByid(colisionList[i][1].id).player):
@@ -76,6 +75,7 @@ class Game:
         pyxel.cls(0)
         self.shotList.draw()
         self.enemyList.draw(self.frameCout, self.frameRate)
+        self.hud.draw()
         self.player.draw()
 
     def load_imagens(self):

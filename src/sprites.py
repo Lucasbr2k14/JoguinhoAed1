@@ -48,7 +48,7 @@ class Player(Sprite):
         self.inCooldown = True
 
     def kill(self):
-        self.lives -= self.lives
+        self.lives -= 1
 
     def __cooldownShot(self, frameCount:int) -> None:
         if (frameCount >= self.lastShotFrame + self.colldownTime) and self.inCooldown:
