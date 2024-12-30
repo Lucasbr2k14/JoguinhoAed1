@@ -9,8 +9,8 @@ class Shot:
         self.player:bool = player
         self.velocity:int = velocity
         self.hitbox = HitBox(type(self), self.id, x ,y, 8, 2)
-        self.index_image:tuple = (8, 0)
-    
+        self.index_image:tuple = (11,0) if player else (8,0)
+        
     def update(self) -> None:
         self.y += self.velocity
         self.hitbox.update(self.x, self.y)

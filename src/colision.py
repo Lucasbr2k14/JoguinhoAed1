@@ -36,7 +36,7 @@ class HitBox:
 class Collision:
     def __init__(self) -> None:
         self.list:list[HitBox] = []
-    
+
     def __testTwoElements(self, hitBoxA:HitBox, hitBoxB:HitBox) -> bool:
         poitsColision:list[bool] = [False, False, False, False]
         for i in range(0,4):
@@ -57,7 +57,7 @@ class Collision:
             self.list.append(hitbox[i])
 
     def destroy(self, number:int):
-        del self.list[number]
+         self.list.pop(number)
 
     def test(self) -> list[HitBox]:
         for i in range(len(self.list)-1, -1, -1):

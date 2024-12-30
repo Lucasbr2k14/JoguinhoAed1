@@ -1,4 +1,10 @@
-from imports import *
+from random import randint
+from colision import HitBox, Collision
+from sprites import Boss, Enemy, Player
+from shot import Shot
+from lists import EnemyList, ShotList
+from hud import HUD
+import pyxel
 
 class Game:
     def __init__(self) -> None:
@@ -13,9 +19,9 @@ class Game:
 
         self.shotList:ShotList = ShotList()
         self.player:Player = Player()
-        self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player, self.shotList)
         self.hud:HUD = HUD(self.screen_height, self.screen_width)
         self.collision:Collision = Collision()
+        self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player, self.shotList, self.collision)
 
         self.collision.addHitBox(self.player.hitbox)
 
@@ -48,6 +54,7 @@ class Game:
 
     def colision(self):
         colisionList:list[list[HitBox]] = self.collision.test()
+        print(colisionList)
         for i in range(len(colisionList)):
             if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Shot":
                 if(self.shotList.getByid(colisionList[i][1].id).player):
@@ -59,6 +66,11 @@ class Game:
                 enemy2 = self.enemyList.getById(colisionList[i][1].id)
                 enemy1.walk = int(not enemy1.walk)
                 enemy2.walk = int(not enemy2.walk)
+
+            if (colisionList[i][0].type == "Player" and colisionList[i][1].type == "Shot"):
+                if not self.shotList.getByid(colisionList[i][1].id).player:
+                    self.player.kill()
+                    self.shotList.destroy(colisionList[i][1].id)
 
     def draw(self):
         pyxel.cls(0)

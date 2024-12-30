@@ -1,6 +1,6 @@
 import pyxel
 from random import randint
-from colision import HitBox
+from colision import HitBox, Collision
 
 class Sprite:
     def __init__(self, x:float, y:float, velocity:float) -> None:
@@ -47,6 +47,9 @@ class Player(Sprite):
         self.lastShotFrame = frameCount
         self.inCooldown = True
 
+    def kill(self):
+        self.lives -= self.lives
+
     def __cooldownShot(self, frameCount:int) -> None:
         if (frameCount >= self.lastShotFrame + self.colldownTime) and self.inCooldown:
             self.inCooldown = False
@@ -85,10 +88,10 @@ class Enemy(Sprite):
             self.walk_left()
         self.hitbox.update(self.x, self.y)
 
-    def shot(self, playerX:int, playerY:int, shotList):
+    def shot(self, playerX:int, playerY:int, shotList, collision:Collision):
         shot = 1 == randint(1, 100)
         if playerX >= self.x and playerX-16 <= self.x and shot:
-            shotList.shot(self.x, self.y, 2, False)
+            collision.addHitBox(shotList.shot(self.x, self.y, 2, False))
 
     def destroy(self):
         self.hitbox.destroy()

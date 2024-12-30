@@ -2,7 +2,10 @@ import pyxel
 
 class HUD:
     def __init__(self, screen_wdth:int, scren_heigth:int):
-        pass
-    
+        self.playerLives:int = 0
+        
+
+
+
     def draw(self):
-        pass
+        pyxel.text(100, 10, f"Lives: {self.playerLives}")

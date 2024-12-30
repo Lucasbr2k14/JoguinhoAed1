@@ -1,5 +1,6 @@
 from random import randint
 from sprites import Enemy, Player
+from colision import Collision
 from shot import Shot
 
 class ShotList:
@@ -48,13 +49,14 @@ class ShotList:
 
 
 class EnemyList:
-    def __init__(self, screenHeigth:int, screenWidth:int, player:Player, shotList:ShotList):
+    def __init__(self, screenHeigth:int, screenWidth:int, player:Player, shotList:ShotList, collision:Collision):
         self.player:Player = player
         self.listEnemy:list[Enemy] = []
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int = screenWidth
         self.destroyList:list[int] = []
         self.shotList:ShotList = shotList
+        self.collision:Collision = collision
         self.id:int = 0
 
     def randomEnemy(self) -> Enemy:
@@ -68,7 +70,7 @@ class EnemyList:
     def update(self):
         self.__deleteClass()
         for enemy in self.listEnemy:
-            enemy.shot(self.player.x, self.player.y, self.shotList)
+            enemy.shot(self.player.x, self.player.y, self.shotList, self.collision)
             enemy.update()
 
     def getById(self, id:int) -> Enemy:
