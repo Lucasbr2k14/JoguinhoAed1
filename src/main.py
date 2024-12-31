@@ -4,6 +4,7 @@ from sprites import Boss, Enemy, Player
 from shot import Shot
 from lists import EnemyList, ShotList
 from hud import HUD
+
 import pyxel
 
 class Game:
@@ -13,7 +14,7 @@ class Game:
         self.frameRate:int = 30
         self.frameCout:int = 0
 
-        pyxel.init(self.screen_width, self.screen_height, title="Hello my game", fps=self.frameRate)
+        pyxel.init(self.screen_width, self.screen_height, title="Space Invaiders", fps=self.frameRate)
 
         self.load_imagens()
 
@@ -52,13 +53,14 @@ class Game:
             self.collision.addHitBox(shot)
             self.player.shot(self.frameCout)
 
-    def colision(self):
+    def colision(self) -> None:
         colisionList:list[list[HitBox]] = self.collision.test()
         for i in range(len(colisionList)):
             if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Shot":
                 if(self.shotList.getByid(colisionList[i][1].id).player):
                     self.enemyList.destroy(colisionList[i][0].id)
                     self.shotList.destroy(colisionList[i][1].id)
+                    self.player.addScore(10)
         
             if (colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy"):
                 enemy1 = self.enemyList.getById(colisionList[i][0].id)

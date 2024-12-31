@@ -31,7 +31,7 @@ class Player(Sprite):
     def __init__(self) -> None:        
         super().__init__(100, 160, 2)
         self.lives:int = 3
-        self.poits:int = 0
+        self.score:int = 0
         self.sprite:int = 6
         self.inCooldown:bool = False
         self.colldownTime:float = 30 * 0.5
@@ -47,8 +47,11 @@ class Player(Sprite):
         self.lastShotFrame = frameCount
         self.inCooldown = True
 
-    def kill(self):
+    def kill(self) -> None:
         self.lives -= 1
+
+    def addScore(self, poits:int) -> None:
+        self.score += poits
 
     def __cooldownShot(self, frameCount:int) -> None:
         if (frameCount >= self.lastShotFrame + self.colldownTime) and self.inCooldown:
@@ -89,7 +92,7 @@ class Enemy(Sprite):
         self.hitbox.update(self.x, self.y)
 
     def shot(self, playerX:int, playerY:int, shotList, collision:Collision):
-        shot = 1 == randint(1, 100)
+        shot:bool = (1 == randint(1, 100))
         if playerX >= self.x and playerX-16 <= self.x and shot:
             collision.addHitBox(shotList.shot(self.x, self.y, 2, False))
 
