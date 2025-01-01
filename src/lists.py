@@ -4,7 +4,8 @@ from colision import Collision
 from shot import Shot
 
 class ShotList:
-    def __init__(self) -> None:
+    def __init__(self, colision:Collision) -> None:
+        self.collision:Collision = colision
         self.shotList:list[Shot] = []
         self.destroyList:list[int] = []
         self.id = 0
@@ -13,7 +14,8 @@ class ShotList:
         self.id += 1
         shot = Shot(x,y,velocity, self.id, player)
         self.shotList.append(shot)
-        return shot.hitbox
+        print(shot.hitbox)
+        self.collision.addHitBox(shot.hitbox)
 
     def update(self) -> None:
         self.__deleteClass()
@@ -51,27 +53,31 @@ class ShotList:
 class EnemyList:
     def __init__(self, screenHeigth:int, screenWidth:int, player:Player, shotList:ShotList, collision:Collision):
         self.player:Player = player
-        self.listEnemy:list[Enemy] = []
-        self.screenHeigth:int = screenHeigth
-        self.screenWidth:int = screenWidth
-        self.destroyList:list[int] = []
         self.shotList:ShotList = shotList
         self.collision:Collision = collision
+        self.screenHeigth:int = screenHeigth
+        self.screenWidth:int = screenWidth
+        self.listEnemy:list[Enemy] = []
+        self.destroyList:list[int] = []
         self.id:int = 0
 
-    def randomEnemy(self) -> Enemy:
+    def randomEnemy(self) -> None:
         x,y = randint(10,160), randint(1,5) * 26
         enemyType = randint(0,2)
         enemy = Enemy(enemyType, x,y,self.id, self.screenHeigth, self.screenWidth)
         self.listEnemy.append(enemy)
         self.id += 1
-        return enemy
+        self.collision.addHitBox(enemy.hitbox)
 
-    def update(self):
+    # def createEnemy(self, x:float, y:float, type:int):
+
+
+
+    def update(self, frameCount:int, frameRate:int):
         self.__deleteClass()
         for enemy in self.listEnemy:
             enemy.shot(self.player.x, self.player.y, self.shotList, self.collision)
-            enemy.update()
+            enemy.update(frameCount, frameRate)
 
     def getById(self, id:int) -> Enemy:
         for i in range(len(self.listEnemy)):
@@ -94,5 +100,3 @@ class EnemyList:
                         self.listEnemy[j].destroy()
                         self.listEnemy.pop(j)
             self.destroyList.pop(i)
-
-

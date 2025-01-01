@@ -63,15 +63,12 @@ class Collision:
         for i in range(len(self.list)-1, -1, -1):
             if self.list[i].destroyHitBox:
                 self.list.pop(i)
-        
         listColisionFrame:list[HitBox] = []
-
         for i in range(len(self.list)):
             for j in range(len(self.list)):
                 if(self.list[i] != self.list[j]):
                     coli = self.__testTwoElements(self.list[i], self.list[j])
                     if coli and (not [self.list[j], self.list[i]] in listColisionFrame):
                         listColisionFrame.append([self.list[i], self.list[j]])
-
         return listColisionFrame
 

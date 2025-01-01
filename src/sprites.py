@@ -77,30 +77,26 @@ class Enemy(Sprite):
         self.id:int = id
         self.type:int = enemy
         self.hitbox:HitBox = HitBox(type(self), self.id, self.x, self.y, 16, 16)
-        self.index_image:list = [0,0]
+        self.indexImage:list = [0,0]
         self.walk:int = 0
+        self.lastWalkFrame:int = 0
 
-    def update(self) -> None:
-        if self.x + 16 >= 200:
-            self.walk = int(not self.walk)
-        if self.x <= 0:
-            self.walk = int(not self.walk)
-        if self.walk == 0:
-            self.walk_rigth()
-        else:
-            self.walk_left()
+    def update(self, frameCount:int, frameRate:int) -> None:
         self.hitbox.update(self.x, self.y)
 
     def shot(self, playerX:int, playerY:int, shotList, collision:Collision):
         shot:bool = (1 == randint(1, 100))
         if playerX >= self.x and playerX-16 <= self.x and shot:
-            collision.addHitBox(shotList.shot(self.x, self.y, 2, False))
+            shotList.shot(self.x, self.y, 2, False)
 
     def destroy(self):
         self.hitbox.destroy()
 
     def draw(self, frameCount:int, frameRate:int) -> None:
         # self.hitbox.draw()
-        self.index_image[0] = (self.type * 2) + int(frameCount/(frameRate/4) % 2)
-        pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16,0)
+        self.indexImage[0] = (self.type * 2) + int(frameCount/(frameRate/4) % 2)
+        pyxel.blt(self.x, self.y, 0, 16 * self.indexImage[0], 16 * self.indexImage[1], 16,16,0)
 
+    def __walk(self, frameCount:int, frameRate:int):
+        pass
+        

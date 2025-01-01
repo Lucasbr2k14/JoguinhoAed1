@@ -18,9 +18,9 @@ class Game:
 
         self.load_imagens()
 
-        self.shotList:ShotList = ShotList()
-        self.player:Player = Player()
+        self.player:Player =  Player()
         self.collision:Collision = Collision()
+        self.shotList:ShotList = ShotList(self.collision)
         self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player, self.shotList, self.collision)
         self.hud:HUD = HUD(self.screen_width, self.screen_height, self.player)
 
@@ -36,7 +36,7 @@ class Game:
        
         # Update class
         self.player.update(self.frameCout)
-        self.enemyList.update()
+        self.enemyList.update(self.frameCout, self.frameRate)
         self.shotList.update()
 
     def keys(self):
@@ -45,12 +45,11 @@ class Game:
         if pyxel.btn(pyxel.KEY_RIGHT): self.player.walk_rigth()
 
         if pyxel.btnp(pyxel.KEY_RETURN):
-            enemy = self.enemyList.randomEnemy()
-            self.collision.addHitBox(enemy.hitbox)
+           self.enemyList.randomEnemy()
+           
 
         if pyxel.btnp(pyxel.KEY_SPACE) and not self.player.inCooldown: 
-            shot = self.shotList.shot(self.player.x+7, self.player.y, -4, True)
-            self.collision.addHitBox(shot)
+            self.shotList.shot(self.player.x+7, self.player.y, -4, True)
             self.player.shot(self.frameCout)
 
     def colision(self) -> None:
@@ -58,17 +57,18 @@ class Game:
         for i in range(len(colisionList)):
             if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Shot":
                 if(self.shotList.getByid(colisionList[i][1].id).player):
+                    score = (self.enemyList.getById(colisionList[i][0].id).type+1) * 10
+                    self.player.addScore(score)
                     self.enemyList.destroy(colisionList[i][0].id)
                     self.shotList.destroy(colisionList[i][1].id)
-                    self.player.addScore(10)
         
-            if (colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy"):
+            if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy":
                 enemy1 = self.enemyList.getById(colisionList[i][0].id)
                 enemy2 = self.enemyList.getById(colisionList[i][1].id)
                 enemy1.walk = int(not enemy1.walk)
                 enemy2.walk = int(not enemy2.walk)
 
-            if (colisionList[i][0].type == "Player" and colisionList[i][1].type == "Shot"):
+            if colisionList[i][0].type == "Player" and colisionList[i][1].type == "Shot":
                 if not self.shotList.getByid(colisionList[i][1].id).player:
                     self.player.kill()
                     self.shotList.destroy(colisionList[i][1].id)
