@@ -4,7 +4,6 @@ from sprites import Boss, Enemy, Player
 from shot import Shot
 from lists import EnemyList, ShotList
 from hud import HUD
-
 import pyxel
 
 class Game:
@@ -26,6 +25,11 @@ class Game:
 
         self.collision.addHitBox(self.player.hitbox)
 
+        for i in range(0, 9):
+            x = i * 20
+            self.enemyList.createEnemy(0, x, 50)
+
+
         pyxel.run(self.update, self.draw)
 
     def update(self):
@@ -34,6 +38,7 @@ class Game:
         self.colision()
         self.keys()
        
+
         # Update class
         self.player.update(self.frameCout)
         self.enemyList.update(self.frameCout, self.frameRate)
@@ -47,7 +52,6 @@ class Game:
         if pyxel.btnp(pyxel.KEY_RETURN):
            self.enemyList.randomEnemy()
            
-
         if pyxel.btnp(pyxel.KEY_SPACE) and not self.player.inCooldown: 
             self.shotList.shot(self.player.x+7, self.player.y, -4, True)
             self.player.shot(self.frameCout)
@@ -61,13 +65,7 @@ class Game:
                     self.player.addScore(score)
                     self.enemyList.destroy(colisionList[i][0].id)
                     self.shotList.destroy(colisionList[i][1].id)
-        
-            if colisionList[i][0].type == "Enemy" and colisionList[i][1].type == "Enemy":
-                enemy1 = self.enemyList.getById(colisionList[i][0].id)
-                enemy2 = self.enemyList.getById(colisionList[i][1].id)
-                enemy1.walk = int(not enemy1.walk)
-                enemy2.walk = int(not enemy2.walk)
-
+    
             if colisionList[i][0].type == "Player" and colisionList[i][1].type == "Shot":
                 if not self.shotList.getByid(colisionList[i][1].id).player:
                     self.player.kill()

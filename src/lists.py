@@ -14,7 +14,6 @@ class ShotList:
         self.id += 1
         shot = Shot(x,y,velocity, self.id, player)
         self.shotList.append(shot)
-        print(shot.hitbox)
         self.collision.addHitBox(shot.hitbox)
 
     def update(self) -> None:
@@ -64,14 +63,13 @@ class EnemyList:
     def randomEnemy(self) -> None:
         x,y = randint(10,160), randint(1,5) * 26
         enemyType = randint(0,2)
-        enemy = Enemy(enemyType, x,y,self.id, self.screenHeigth, self.screenWidth)
+        self.createEnemy(enemyType, x, y)
+
+    def createEnemy(self, type:int, x:float, y:float):
+        enemy = Enemy(type, x, y, self.id, self.screenWidth, self.screenHeigth)
         self.listEnemy.append(enemy)
-        self.id += 1
         self.collision.addHitBox(enemy.hitbox)
-
-    # def createEnemy(self, x:float, y:float, type:int):
-
-
+        self.id += 1
 
     def update(self, frameCount:int, frameRate:int):
         self.__deleteClass()
