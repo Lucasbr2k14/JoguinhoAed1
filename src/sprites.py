@@ -72,27 +72,30 @@ class Boss(Sprite):
 class Enemy(Sprite):
     def __init__(self, enemy:int, x:float, y:float, id:int, screenHeigth:int, screenWidth:int) -> None:
         super().__init__(x, y, 2)
+        self.stepInterval:float = 30 * 0.5
+        self.coolDownTime:float =  30 * 2
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int  = screenWidth
-        self.cooldownShot:float =  30 * 0.5
-        self.stepInterval:float = 30 * 0.5
         self.id:int = id
         self.type:int = enemy
-        self.hitbox:HitBox = HitBox(type(self), self.id, self.x, self.y, 16, 16)
+        self.lastShotFrame:int = 0
         self.indexImage:list = [0,0]
         self.imageLoop:int = 0
-        self.walk:int = 0
+        self.walkRigth:bool = True
         self.nextStep:int = 0
-        self.walkQuanti:int = 16
+        self.walkQuanti:int = 20
+        self.hitbox:HitBox = HitBox(type(self), self.id, self.x, self.y, 16, 16)
 
-    def update(self, frameCount:int, frameRate:int) -> None:
+    def update(self, frameCount:int, frameRate:int, playerX:int, playerY:int, shotList) -> None:
+        self.shot(playerX, playerY, frameCount, shotList)
         self.__walk(frameCount, frameRate)
         self.hitbox.update(self.x, self.y)
 
-    def shot(self, playerX:int, playerY:int, shotList, collision:Collision):
+    def shot(self, playerX:int, playerY:int, frameCount:int, shotList):
         shot:bool = (1 == randint(1, 100))
-        if playerX >= self.x and playerX-16 <= self.x and shot:
-            shotList.shot(self.x, self.y, 2, False)
+        if (playerX >= self.x and playerX-16 <= self.x) and (frameCount >= self.lastShotFrame + self.coolDownTime) and (shot):
+            shotList.shot(self.x + 8, self.y + 16, 2, False)
+            self.lastShotFrame = frameCount
 
     def destroy(self):
         self.hitbox.destroy()
@@ -104,6 +107,17 @@ class Enemy(Sprite):
     def __walk(self, frameCount:int, frameRate:int):
         if frameCount >= self.nextStep:
             self.imageLoop = int(not self.imageLoop)
-            self.walk_rigth()
+            
+            if self.walkRigth:
+                self.walk_rigth()
+                self.walkQuanti -= self.velocity
+            else:
+                self.walk_left()
+                self.walkQuanti += self.velocity
+
+            if self.walkQuanti <= 0 or self.walkQuanti >= 20:
+                self.walkRigth = not self.walkRigth
+                self.walk_down()
+
             self.nextStep = frameCount +  self.stepInterval
         

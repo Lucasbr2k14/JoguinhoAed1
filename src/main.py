@@ -25,10 +25,10 @@ class Game:
 
         self.collision.addHitBox(self.player.hitbox)
 
-        for i in range(0, 9):
-            x = i * 20
-            self.enemyList.createEnemy(0, x, 50)
-
+        for j in range(0, 6):
+            for i in range(0, 9):
+                x = i * 20
+                self.enemyList.createEnemy(j % 3, x, (j + 1) * 20)
 
         pyxel.run(self.update, self.draw)
 

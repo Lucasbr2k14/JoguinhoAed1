@@ -74,8 +74,7 @@ class EnemyList:
     def update(self, frameCount:int, frameRate:int):
         self.__deleteClass()
         for enemy in self.listEnemy:
-            enemy.shot(self.player.x, self.player.y, self.shotList, self.collision)
-            enemy.update(frameCount, frameRate)
+            enemy.update(frameCount, frameRate, self.player.x, self.player.y, self.shotList)
 
     def getById(self, id:int) -> Enemy:
         for i in range(len(self.listEnemy)):
