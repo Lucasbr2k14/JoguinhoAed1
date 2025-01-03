@@ -64,7 +64,7 @@ class Player(Sprite):
 
 
 class Boss(Sprite):
-    def __init__(self, x:float, y:float, id:int):
+    def __init__(self, x:float, y:float, id:int) -> None:
         super().__init__(x, y, 2)
 
         self.live:int = 100
@@ -109,8 +109,8 @@ class Enemy(Sprite):
         self.hitbox.update(self.x, self.y)
 
     def shot(self, playerX:int, playerY:int, frameCount:int, shotList):
-        shot:bool = (1 == randint(1, 100))
-        if (playerX >= self.x and playerX-16 <= self.x) and (frameCount >= self.lastShotFrame + self.coolDownTime) and (shot):
+        shot:bool = (25 == randint(1, 1000))
+        if (frameCount >= self.lastShotFrame + self.coolDownTime) and (shot):
             shotList.shot(self.x + 8, self.y + 16, 2, False)
             self.lastShotFrame = frameCount
 

@@ -5,6 +5,27 @@ from lists import EnemyList, ShotList
 from hud import HUD
 import pyxel
 
+class GameLevel:
+    def __init__(self, player:Player, shotList:ShotList, enemyList:EnemyList):
+        self.player:Player = player
+        self.shotList:ShotList =  shotList
+        self.enemyList:EnemyList = enemyList
+        self.gameLevel:int = 0
+        
+    def update(self):
+        if len(self.enemyList.listEnemy) <= 0:
+            self.player.lives = min(self.player.lives+1, 3)
+            self.gameLevel += 1
+            self.createLevel()
+
+    def createLevel(self):
+        if self.gameLevel % 5 != 0:
+            for j in range(0, 6):
+                for i in range(0, 9):
+                    x = i * 20
+                    self.enemyList.createEnemy(j % 3, x, (j + 1) * 20)
+        else:
+            self.enemyList.createBoss(100,100)
 
 class Game:
     def __init__(self) -> None:
@@ -22,13 +43,8 @@ class Game:
         self.shotList:ShotList = ShotList(self.collision)
         self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player, self.shotList, self.collision)
         self.hud:HUD = HUD(self.screen_width, self.screen_height, self.player)
-
+        self.gameLevel:GameLevel = GameLevel(self.player, self.shotList, self.enemyList)
         self.collision.addHitBox(self.player.hitbox)
-
-        for j in range(0, 6):
-            for i in range(0, 9):
-                x = i * 20
-                self.enemyList.createEnemy(j % 3, x, (j + 1) * 20)
 
         # self.enemyList.createBoss(100, 100)
 
@@ -41,6 +57,7 @@ class Game:
         self.keys()
 
         # Update class
+        self.gameLevel.update()
         self.player.update(self.frameCout)
         self.enemyList.update(self.frameCout, self.frameRate)
         self.shotList.update()
