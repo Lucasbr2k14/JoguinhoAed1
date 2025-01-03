@@ -1,10 +1,10 @@
 from random import randint
 from colision import HitBox, Collision
-from sprites import Boss, Enemy, Player
-from shot import Shot
+from sprites import Player
 from lists import EnemyList, ShotList
 from hud import HUD
 import pyxel
+
 
 class Game:
     def __init__(self) -> None:
@@ -30,6 +30,8 @@ class Game:
                 x = i * 20
                 self.enemyList.createEnemy(j % 3, x, (j + 1) * 20)
 
+        # self.enemyList.createBoss(100, 100)
+
         pyxel.run(self.update, self.draw)
 
     def update(self):
@@ -37,7 +39,6 @@ class Game:
 
         self.colision()
         self.keys()
-       
 
         # Update class
         self.player.update(self.frameCout)

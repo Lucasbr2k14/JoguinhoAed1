@@ -1,5 +1,5 @@
 from random import randint
-from sprites import Enemy, Player
+from sprites import Player, Enemy, Boss
 from colision import Collision
 from shot import Shot
 
@@ -66,12 +66,18 @@ class EnemyList:
         self.createEnemy(enemyType, x, y)
 
     def createEnemy(self, type:int, x:float, y:float):
-        enemy = Enemy(type, x, y, self.id, self.screenWidth, self.screenHeigth)
+        enemy:Enemy = Enemy(type, x, y, self.id, self.screenWidth, self.screenHeigth)
         self.listEnemy.append(enemy)
         self.collision.addHitBox(enemy.hitbox)
         self.id += 1
 
-    def update(self, frameCount:int, frameRate:int):
+    def createBoss(self, x:int, y:int) -> None:
+        boss:Boss = Boss(x, y, self.id) 
+        self.listEnemy.append(boss)
+        self.collision.addHitBox(boss.hitBox)
+        self.id += 1
+
+    def update(self, frameCount:int, frameRate:int) -> None:
         self.__deleteClass()
         for enemy in self.listEnemy:
             enemy.update(frameCount, frameRate, self.player.x, self.player.y, self.shotList)
@@ -81,14 +87,14 @@ class EnemyList:
             if self.listEnemy[i].id == id:
                 return self.listEnemy[i]
 
-    def draw(self, frameCount:int, frameRate:int):
+    def draw(self, frameCount:int, frameRate:int) -> None:
         for enemy in self.listEnemy:
             enemy.draw(frameCount, frameRate)
 
     def destroy(self, id:int) -> None:
         self.destroyList.append(id)
 
-    def __deleteClass(self) -> None:        
+    def __deleteClass(self) -> None:
         if len(self.destroyList) > 0:
             for i in range(len(self.destroyList)-1, -1, -1):
                 id = self.destroyList[i]

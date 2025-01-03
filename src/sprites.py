@@ -64,9 +64,26 @@ class Player(Sprite):
 
 
 class Boss(Sprite):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, x:float, y:float, id:int):
+        super().__init__(x, y, 2)
+
+        self.live:int = 100
+        self.id:int = id
+
+        self.indexImage:list = [0,7] 
+        self.animationRate:float = 30 * 1/2
+        self.lastAnimateFrame:int = 0
+        self.hitBox:int = HitBox(type(self), self.id, self.x, self.y, 32, 32)
+
+    def update(self, frameCount:int, frameRate:int, playerX:int, playerY:int, shotList) -> None:
         pass
+
+    def draw(self, frameCount:int, frameRate:int) -> None:
+        if frameCount >= self.lastAnimateFrame + self.animationRate:
+            self.indexImage[0] = (self.indexImage[0] + 1) % 4
+            self.lastAnimateFrame = frameCount
+
+        pyxel.blt(self.x, self.y, 0, 32 * self.indexImage[0], 32 * self.indexImage[1], 32,32, 0)
 
 
 class Enemy(Sprite):
