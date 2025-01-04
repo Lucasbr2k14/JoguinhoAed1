@@ -29,7 +29,7 @@ class Sprite:
 
 class Player(Sprite):
     def __init__(self) -> None:        
-        super().__init__(100, 160, 2)
+        super().__init__(92, 160, 2)
         self.lives:int = 3
         self.score:int = 0
         self.kills:int = 0
@@ -54,6 +54,9 @@ class Player(Sprite):
     def addScore(self, poits:int) -> None:
         self.score += poits
 
+    def gameOver(self):
+        pass
+
     def __cooldownShot(self, frameCount:int) -> None:
         if (frameCount >= self.lastShotFrame + self.colldownTime) and self.inCooldown:
             self.inCooldown = False
@@ -73,12 +76,13 @@ class Boss(Sprite):
         self.indexImage:list = [0,7] 
         self.animationRate:float = 30 * 1/2
         self.lastAnimateFrame:int = 0
-        self.hitBox:int = HitBox(type(self), self.id, self.x, self.y, 32, 32)
+        self.hitBox:HitBox = HitBox(type(self), self.id, self.x, self.y, 32, 32)
 
     def update(self, frameCount:int, frameRate:int, playerX:int, playerY:int, shotList) -> None:
         pass
 
     def draw(self, frameCount:int, frameRate:int) -> None:
+        self.hitBox.draw()
         if frameCount >= self.lastAnimateFrame + self.animationRate:
             self.indexImage[0] = (self.indexImage[0] + 1) % 4
             self.lastAnimateFrame = frameCount
@@ -96,6 +100,7 @@ class Enemy(Sprite):
         self.id:int = id
         self.type:int = enemy
         self.lastShotFrame:int = 0
+        self.probabilityShot:int = 400
         self.indexImage:list = [0,0]
         self.imageLoop:int = 0
         self.walkRigth:bool = True
@@ -109,7 +114,7 @@ class Enemy(Sprite):
         self.hitbox.update(self.x, self.y)
 
     def shot(self, playerX:int, playerY:int, frameCount:int, shotList):
-        shot:bool = (25 == randint(1, 1000))
+        shot:bool = (1 == randint(1, self.probabilityShot))
         if (frameCount >= self.lastShotFrame + self.coolDownTime) and (shot):
             shotList.shot(self.x + 8, self.y + 16, 2, False)
             self.lastShotFrame = frameCount

@@ -2,7 +2,7 @@ from random import randint
 from colision import HitBox, Collision
 from sprites import Player
 from lists import EnemyList, ShotList
-from hud import HUD
+from hud import HUD, GameOverScreen
 import pyxel
 
 class GameLevel:
@@ -11,8 +11,15 @@ class GameLevel:
         self.shotList:ShotList =  shotList
         self.enemyList:EnemyList = enemyList
         self.gameLevel:int = 0
-        
+        self.gameRuning:bool = True
+        self.gameOver:bool = False
+
     def update(self):
+        if self.player.lives < 0:
+            self.gameRuning = False
+            self.gameOver = True
+            self.player.gameOver()
+
         if len(self.enemyList.listEnemy) <= 0:
             self.player.lives = min(self.player.lives+1, 3)
             self.gameLevel += 1
@@ -42,8 +49,11 @@ class Game:
         self.collision:Collision = Collision()
         self.shotList:ShotList = ShotList(self.collision)
         self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player, self.shotList, self.collision)
-        self.hud:HUD = HUD(self.screen_width, self.screen_height, self.player)
         self.gameLevel:GameLevel = GameLevel(self.player, self.shotList, self.enemyList)
+        
+        self.hud:HUD = HUD(self.screen_width, self.screen_height, self.player)
+        self.gameOverScreen:GameOverScreen = GameOverScreen(self.screen_width, self.screen_height)
+
         self.collision.addHitBox(self.player.hitbox)
 
         # self.enemyList.createBoss(100, 100)
@@ -62,6 +72,17 @@ class Game:
         self.enemyList.update(self.frameCout, self.frameRate)
         self.shotList.update()
 
+    def draw(self):
+        pyxel.cls(0)
+        if self.gameLevel.gameRuning:
+            self.shotList.draw()
+            self.enemyList.draw(self.frameCout, self.frameRate)
+            self.hud.draw()
+            self.player.draw()
+        
+        if self.gameLevel.gameOver:
+            self.gameOverScreen.draw()
+    
     def keys(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE): pyxel.quit()
         if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
@@ -89,12 +110,7 @@ class Game:
                     self.player.kill()
                     self.shotList.destroy(colisionList[i][1].id)
 
-    def draw(self):
-        pyxel.cls(0)
-        self.shotList.draw()
-        self.enemyList.draw(self.frameCout, self.frameRate)
-        self.hud.draw()
-        self.player.draw()
+
 
     def load_imagens(self):
         pyxel.images[0].load(0, 0, "../SpritesSheets/Sprites.png")
