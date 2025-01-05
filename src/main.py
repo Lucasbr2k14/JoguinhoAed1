@@ -42,6 +42,8 @@ class GameLevel:
         else:
             self.enemyList.createBoss(100,100)
 
+
+
 class Game:
     def __init__(self) -> None:
         self.screen_width:int = 200
@@ -91,8 +93,8 @@ class Game:
     
     def keys(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE): pyxel.quit()
-        if pyxel.btn(pyxel.KEY_LEFT): self.player.walk_left()
-        if pyxel.btn(pyxel.KEY_RIGHT): self.player.walk_rigth()
+        if pyxel.btn(pyxel.KEY_LEFT) and self.player.x >= 0+1: self.player.walk_left()
+        if pyxel.btn(pyxel.KEY_RIGHT) and self.player.x <= self.screen_width - 17: self.player.walk_rigth()
 
         if pyxel.btnp(pyxel.KEY_RETURN):
            self.enemyList.randomEnemy()
@@ -116,6 +118,9 @@ class Game:
                 if not self.shotList.getByid(colisionList[i][1].id).player:
                     self.player.kill()
                     self.shotList.destroy(colisionList[i][1].id)
+
+    def resetGame(self):
+        pass
 
     def load_imagens(self):
         pyxel.images[0].load(0, 0, "../SpritesSheets/Sprites.png")

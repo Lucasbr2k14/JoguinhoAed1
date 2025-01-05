@@ -32,16 +32,16 @@ class Sprite:
 class Player(Sprite):
     def __init__(self) -> None:        
         super().__init__(92, 160, 2)
-        self.lives:int = 3
+        self.colldownTime:float = 30 * 1/10
         self.maxLives:int = 3
         self.score:int = 0
         self.kills:int = 0
         self.levelKills:int = 0
         self.sprite:int = 6
         self.inCooldown:bool = False
-        self.colldownTime:float = 30 * 0.5
         self.lastShotFrame:int = 0
         self.index_image:tuple = (6, 0)
+        self.lives:int = self.maxLives
         self.hitbox:HitBox = HitBox(type(self), 0, self.x, self.y, 16, 16) 
 
     def update(self, frameCount:int) -> None:
@@ -120,7 +120,7 @@ class Enemy(Sprite):
         self.walkQuanti:int = 20
         self.hitbox:HitBox = HitBox(type(self), self.id, self.x, self.y, 16, 16)
 
-    def update(self, frameCount:int, frameRate:int, shotList) -> None:
+    def update(self, frameCount:int, frameRate:int, playerX:int, playerY:int, shotList) -> None:
         self.shot(frameCount, shotList)
         self.__walk(frameCount, frameRate)
         self.hitbox.update(self.x, self.y)

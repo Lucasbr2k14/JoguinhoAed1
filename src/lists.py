@@ -81,8 +81,9 @@ class EnemyList:
     def update(self, frameCount:int, frameRate:int) -> None:
         self.__deleteClass()
         for enemy in self.listEnemy:
-            enemy.updateStepInterval(self.enemyStepInterval)
-            enemy.update(frameCount, frameRate, self.shotList)
+            if type(enemy).__name__ != "Boss":
+                enemy.updateStepInterval(self.enemyStepInterval)
+            enemy.update(frameCount, frameRate, self.player.x, self.player.y, self.shotList)
 
     def getById(self, id:int) -> Enemy:
         for i in range(len(self.listEnemy)):
@@ -91,7 +92,7 @@ class EnemyList:
 
     def destroy(self, id:int) -> None:
         self.destroyList.append(id)
-        
+
     def __deleteClass(self) -> None:
         if len(self.destroyList) > 0:
             for i in range(len(self.destroyList)-1, -1, -1):
