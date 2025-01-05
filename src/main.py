@@ -1,4 +1,3 @@
-from random import randint
 from colision import HitBox, Collision
 from sprites import Player
 from lists import EnemyList, ShotList
@@ -17,7 +16,7 @@ class GameLevel:
         self.player:Player = player
         self.shotList:ShotList =  shotList
         self.enemyList:EnemyList = enemyList
-        self.gameLevel:int = 0
+        self.gameLevel:int = 4
         self.gameOver:bool = False
 
     def update(self):
@@ -147,6 +146,10 @@ class Game:
                     self.shotList.destroy(colisionList[i][1].id)
                     boss = self.enemyList.getById(colisionList[i][0].id)
                     boss.colisionPlayerShot()
+            
+            if colisionList[i][0].type == "Shot" and colisionList[i][1].type == "Shot":
+                self.shotList.destroy(colisionList[i][0].id)
+                self.shotList.destroy(colisionList[i][1].id)
 
     def resetGame(self):
         self.player.reset()

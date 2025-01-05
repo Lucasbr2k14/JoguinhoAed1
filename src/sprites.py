@@ -93,7 +93,7 @@ class Boss(Sprite):
         self.live:int = 100
         self.id:int = id
 
-        self.coolDownTime:float =  30 * 2
+        self.coolDownTime:float =  30 * 1
         self.lastShotFrame:int = 0
 
         self.indexImage:list = [0,7] 
@@ -147,7 +147,7 @@ class Enemy(Sprite):
         self.id:int = id
         self.type:int = enemy
         self.lastShotFrame:int = 0
-        self.probabilityShot:int = 100
+        self.probabilityShot:int = 1000
         self.indexImage:list = [0,0]
         self.imageLoop:int = 0
         self.walkRigth:bool = True
