@@ -17,8 +17,10 @@ class Sprite:
     def walk_up(self):
         self.y = self.y - self.velocity
     
-    def walk_down(self):
-        self.y = self.y + self.velocity
+    def walk_down(self, velocity:int=1):
+
+        self.y = self.y + self.velocity * velocity
+
 
     def walk_rigth(self):
         self.x = self.x + self.velocity
@@ -31,8 +33,10 @@ class Player(Sprite):
     def __init__(self) -> None:        
         super().__init__(92, 160, 2)
         self.lives:int = 3
+        self.maxLives:int = 3
         self.score:int = 0
         self.kills:int = 0
+        self.levelKills:int = 0
         self.sprite:int = 6
         self.inCooldown:bool = False
         self.colldownTime:float = 30 * 0.5
@@ -50,6 +54,14 @@ class Player(Sprite):
 
     def kill(self) -> None:
         self.lives -= 1
+
+    def killEnemy(self):
+        self.kills += 1
+        self.levelKills += 1
+
+    def nextLevel(self):
+        self.lives = min(self.lives+1, self.maxLives)
+        self.levelKills = 0
 
     def addScore(self, poits:int) -> None:
         self.score += poits
@@ -91,16 +103,16 @@ class Boss(Sprite):
 
 
 class Enemy(Sprite):
-    def __init__(self, enemy:int, x:float, y:float, id:int, screenHeigth:int, screenWidth:int) -> None:
+    def __init__(self, enemy:int, x:float, y:float, id:int, stepInterval:float, screenHeigth:int, screenWidth:int) -> None:
         super().__init__(x, y, 2)
-        self.stepInterval:float = 30 * 0.5
-        self.coolDownTime:float =  30 * 2
+        self.stepInterval:float = stepInterval
+        self.coolDownTime:float =  30 * 1/2
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int  = screenWidth
         self.id:int = id
         self.type:int = enemy
         self.lastShotFrame:int = 0
-        self.probabilityShot:int = 400
+        self.probabilityShot:int = 1000
         self.indexImage:list = [0,0]
         self.imageLoop:int = 0
         self.walkRigth:bool = True
@@ -108,19 +120,23 @@ class Enemy(Sprite):
         self.walkQuanti:int = 20
         self.hitbox:HitBox = HitBox(type(self), self.id, self.x, self.y, 16, 16)
 
-    def update(self, frameCount:int, frameRate:int, playerX:int, playerY:int, shotList) -> None:
-        self.shot(playerX, playerY, frameCount, shotList)
+    def update(self, frameCount:int, frameRate:int, shotList) -> None:
+        self.shot(frameCount, shotList)
         self.__walk(frameCount, frameRate)
         self.hitbox.update(self.x, self.y)
 
-    def shot(self, playerX:int, playerY:int, frameCount:int, shotList):
+    def shot(self, frameCount:int, shotList):
         shot:bool = (1 == randint(1, self.probabilityShot))
+
         if (frameCount >= self.lastShotFrame + self.coolDownTime) and (shot):
             shotList.shot(self.x + 8, self.y + 16, 2, False)
             self.lastShotFrame = frameCount
 
     def destroy(self):
         self.hitbox.destroy()
+
+    def updateStepInterval(self, stepInterval:float) -> None:
+        self.stepInterval = stepInterval
 
     def draw(self, frameCount:int, frameRate:int) -> None:
         self.indexImage[0] = (self.type * 2) + self.imageLoop
@@ -139,7 +155,7 @@ class Enemy(Sprite):
 
             if self.walkQuanti <= 0 or self.walkQuanti >= 20:
                 self.walkRigth = not self.walkRigth
-                self.walk_down()
+                self.walk_down(2)
 
             self.nextStep = frameCount +  self.stepInterval
         

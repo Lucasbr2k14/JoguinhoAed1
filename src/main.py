@@ -7,30 +7,38 @@ import pyxel
 
 class GameLevel:
     def __init__(self, player:Player, shotList:ShotList, enemyList:EnemyList):
+        
+        self.enemyStepIntervalIncrement:float = 52 # Em % esse incremento
+        self.enemyStepInterval:float = 30 * 1/1
+
         self.player:Player = player
         self.shotList:ShotList =  shotList
         self.enemyList:EnemyList = enemyList
+        self.enemyGrid:list[int] = [6,9]
         self.gameLevel:int = 0
         self.gameRuning:bool = True
         self.gameOver:bool = False
 
     def update(self):
+
+        self.enemyList.enemyStepInterval = self.enemyStepInterval - self.player.levelKills * (self.enemyStepIntervalIncrement/100)
+
         if self.player.lives < 0:
             self.gameRuning = False
             self.gameOver = True
             self.player.gameOver()
 
         if len(self.enemyList.listEnemy) <= 0:
-            self.player.lives = min(self.player.lives+1, 3)
+            self.player.nextLevel()
             self.gameLevel += 1
             self.createLevel()
 
     def createLevel(self):
         if self.gameLevel % 5 != 0:
-            for j in range(0, 6):
-                for i in range(0, 9):
+            for j in range(0, self.enemyGrid[0]):
+                for i in range(0, self.enemyGrid[1]):
                     x = i * 20
-                    self.enemyList.createEnemy(j % 3, x, (j + 1) * 20)
+                    self.enemyList.createEnemy(j % 3, x, (j + 1) * 20, self.enemyStepInterval)
         else:
             self.enemyList.createBoss(100,100)
 
@@ -55,8 +63,6 @@ class Game:
         self.gameOverScreen:GameOverScreen = GameOverScreen(self.screen_width, self.screen_height)
 
         self.collision.addHitBox(self.player.hitbox)
-
-        # self.enemyList.createBoss(100, 100)
 
         pyxel.run(self.update, self.draw)
 
@@ -102,6 +108,7 @@ class Game:
                 if(self.shotList.getByid(colisionList[i][1].id).player):
                     score = (self.enemyList.getById(colisionList[i][0].id).type+1) * 10
                     self.player.addScore(score)
+                    self.player.killEnemy()
                     self.enemyList.destroy(colisionList[i][0].id)
                     self.shotList.destroy(colisionList[i][1].id)
     
@@ -109,8 +116,6 @@ class Game:
                 if not self.shotList.getByid(colisionList[i][1].id).player:
                     self.player.kill()
                     self.shotList.destroy(colisionList[i][1].id)
-
-
 
     def load_imagens(self):
         pyxel.images[0].load(0, 0, "../SpritesSheets/Sprites.png")

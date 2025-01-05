@@ -25,10 +25,6 @@ class ShotList:
                 if self.shotList[j].y >= 200 or self.shotList[j].y <= 0:
                     self.destroy(self.shotList[j].id)
 
-    def draw(self):
-        for shot in self.shotList:
-            shot.draw()
-
     def getByid(self, id:int) -> Shot | None:
         for i in range(len(self.shotList)):
             if self.shotList[i].id == id:
@@ -47,6 +43,10 @@ class ShotList:
                         self.shotList[j].destory()
                         self.shotList.pop(j)
             self.destroyList.pop(i)
+    
+    def draw(self):
+        for shot in self.shotList:
+            shot.draw()
 
 
 class EnemyList:
@@ -58,6 +58,7 @@ class EnemyList:
         self.screenWidth:int = screenWidth
         self.listEnemy:list[Enemy] = []
         self.destroyList:list[int] = []
+        self.enemyStepInterval:float = 0
         self.id:int = 0
 
     def randomEnemy(self) -> None:
@@ -65,8 +66,8 @@ class EnemyList:
         enemyType = randint(0,2)
         self.createEnemy(enemyType, x, y)
 
-    def createEnemy(self, type:int, x:float, y:float):
-        enemy:Enemy = Enemy(type, x, y, self.id, self.screenWidth, self.screenHeigth)
+    def createEnemy(self, type:int, x:float, y:float, stepInterval:float):
+        enemy:Enemy = Enemy(type, x, y, self.id, stepInterval, self.screenWidth, self.screenHeigth)
         self.listEnemy.append(enemy)
         self.collision.addHitBox(enemy.hitbox)
         self.id += 1
@@ -80,20 +81,17 @@ class EnemyList:
     def update(self, frameCount:int, frameRate:int) -> None:
         self.__deleteClass()
         for enemy in self.listEnemy:
-            enemy.update(frameCount, frameRate, self.player.x, self.player.y, self.shotList)
+            enemy.updateStepInterval(self.enemyStepInterval)
+            enemy.update(frameCount, frameRate, self.shotList)
 
     def getById(self, id:int) -> Enemy:
         for i in range(len(self.listEnemy)):
             if self.listEnemy[i].id == id:
                 return self.listEnemy[i]
 
-    def draw(self, frameCount:int, frameRate:int) -> None:
-        for enemy in self.listEnemy:
-            enemy.draw(frameCount, frameRate)
-
     def destroy(self, id:int) -> None:
         self.destroyList.append(id)
-
+        
     def __deleteClass(self) -> None:
         if len(self.destroyList) > 0:
             for i in range(len(self.destroyList)-1, -1, -1):
@@ -103,3 +101,7 @@ class EnemyList:
                         self.listEnemy[j].destroy()
                         self.listEnemy.pop(j)
             self.destroyList.pop(i)
+    
+    def draw(self, frameCount:int, frameRate:int) -> None:
+        for enemy in self.listEnemy:
+            enemy.draw(frameCount, frameRate)
