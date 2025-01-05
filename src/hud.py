@@ -6,10 +6,18 @@ class Menu:
         self.screenWidth:int = screen_width
         self.screenHeigth:int = screen_heigth
 
-    def draw(self):
-        pass
-        
+    def draw(self, frameCount:int):
 
+        animate = int((frameCount/15) % 2)
+
+        pyxel.text(62, 100-6, "PRESS ENTER TO START", 7)
+
+        pyxel.blt(73, 120, 0, 16 * (0 + animate), 0, 16, 16, 0)
+        pyxel.text(91, 125, "10 SCORE", 11)
+        pyxel.blt(73, 136, 0, 16 * (2 + animate), 0, 16, 16, 0)
+        pyxel.text(91, 140, "20 SCORE", 3)
+        pyxel.blt(73, 152, 0, 16 * (4 + animate), 0, 16, 16, 0)
+        pyxel.text(91, 156, "30 SCORE", 2)
 
 class HUD:
     def __init__(self, screen_width:int, screen_heigth:int, player:Player) -> None:
@@ -22,7 +30,6 @@ class HUD:
 
         pyxel.text(5, 7, "SCORE: ", 7)
         pyxel.text(25+5, 7, str(int(self.player.score)), 3)
-
 
         pyxel.text(116, 7, "LIVES:", 7)
 

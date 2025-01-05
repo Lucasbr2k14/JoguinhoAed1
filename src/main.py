@@ -40,7 +40,7 @@ class GameLevel:
                 for i in range(0, self.enemyGrid[1]):
                     x = i * 20
                     self.enemyList.createEnemy(j % 3, x, (j + 1) * 20, self.enemyStepInterval)
-        else:
+        else:   
             self.enemyList.createBoss(100,50)
     def reset(self):
         self.gameLevel = 0
@@ -81,11 +81,11 @@ class Game:
         self.frameCout = pyxel.frame_count  
         self.gameRuning = not self.gameLevel.gameOver
 
-        self.colision()
         self.keys()
 
         # Update class
-        if self.gameRuning:
+        if self.gameRuning and not self.showMenu:
+            self.colision()
             self.gameLevel.update()
             self.player.update(self.frameCout)
             self.enemyList.update(self.frameCout, self.frameRate)
@@ -93,15 +93,19 @@ class Game:
 
     def draw(self):
         pyxel.cls(0)
-        if self.gameRuning:
+        if self.gameRuning and not self.showMenu:
             self.shotList.draw()
             self.enemyList.draw(self.frameCout, self.frameRate)
             self.hud.draw()
             self.player.draw()
         
+        if self.showMenu:
+            self.menu.draw(self.frameCout)
+
         if self.gameLevel.gameOver:
             self.gameOverScreen.draw()
     
+
     def keys(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE): 
             pyxel.quit()
@@ -112,8 +116,11 @@ class Game:
         if pyxel.btn(pyxel.KEY_RIGHT) and self.player.x <= self.screen_width - 17: 
             self.player.walk_rigth()
 
-        if pyxel.btnp(pyxel.KEY_RETURN) and self.gameLevel.gameOver:
-            self.resetGame()
+        if pyxel.btnp(pyxel.KEY_RETURN):
+            if self.gameLevel.gameOver:
+                self.resetGame()
+            if self.showMenu:
+                self.showMenu = False
 
         if pyxel.btnp(pyxel.KEY_SPACE) and not self.player.inCooldown: 
             self.shotList.shot(self.player.x+7, self.player.y, -4, True)
