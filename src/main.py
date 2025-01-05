@@ -2,21 +2,22 @@ from random import randint
 from colision import HitBox, Collision
 from sprites import Player
 from lists import EnemyList, ShotList
-from hud import HUD, GameOverScreen
+from hud import HUD, Menu, GameOverScreen
 import pyxel
 
+
+# Game level faz todo o gerenciamento das fases do jogo
 class GameLevel:
     def __init__(self, player:Player, shotList:ShotList, enemyList:EnemyList):
         
-        self.enemyStepIntervalIncrement:float = 52 # Em % esse incremento
-        self.enemyStepInterval:float = 30 * 1/1
+        self.enemyStepIntervalIncrement:float = 52 # Em % esse incremento para cara inimigo eliminado.
+        self.enemyStepInterval:float = 30 * 1/1    # 
+        self.enemyGrid:list[int] = [4,9]
 
         self.player:Player = player
         self.shotList:ShotList =  shotList
         self.enemyList:EnemyList = enemyList
-        self.enemyGrid:list[int] = [6,9]
         self.gameLevel:int = 0
-        self.gameRuning:bool = True
         self.gameOver:bool = False
 
     def update(self):
@@ -24,14 +25,14 @@ class GameLevel:
         self.enemyList.enemyStepInterval = self.enemyStepInterval - self.player.levelKills * (self.enemyStepIntervalIncrement/100)
 
         if self.player.lives < 0:
-            self.gameRuning = False
             self.gameOver = True
-            self.player.gameOver()
 
         if len(self.enemyList.listEnemy) <= 0:
             self.player.nextLevel()
+            self.shotList.clearShots()
             self.gameLevel += 1
             self.createLevel()
+            self.enemyGrid[0] = min(self.enemyGrid[0]+1, 6)
 
     def createLevel(self):
         if self.gameLevel % 5 != 0:
@@ -40,10 +41,14 @@ class GameLevel:
                     x = i * 20
                     self.enemyList.createEnemy(j % 3, x, (j + 1) * 20, self.enemyStepInterval)
         else:
-            self.enemyList.createBoss(100,100)
+            self.enemyList.createBoss(100,50)
+    def reset(self):
+        self.gameLevel = 0
+        self.gameOver = False
+        self.enemyGrid = [4,9]
 
 
-
+# Classe principal do jogo
 class Game:
     def __init__(self) -> None:
         self.screen_width:int = 200
@@ -61,8 +66,12 @@ class Game:
         self.enemyList:EnemyList = EnemyList(self.screen_height, self.screen_width, self.player, self.shotList, self.collision)
         self.gameLevel:GameLevel = GameLevel(self.player, self.shotList, self.enemyList)
         
+        self.menu:Menu = Menu(self.screen_width, self.screen_height)
         self.hud:HUD = HUD(self.screen_width, self.screen_height, self.player)
         self.gameOverScreen:GameOverScreen = GameOverScreen(self.screen_width, self.screen_height)
+
+        self.showMenu:bool = True
+        self.gameRuning:bool = False
 
         self.collision.addHitBox(self.player.hitbox)
 
@@ -70,19 +79,21 @@ class Game:
 
     def update(self):
         self.frameCout = pyxel.frame_count  
+        self.gameRuning = not self.gameLevel.gameOver
 
         self.colision()
         self.keys()
 
         # Update class
-        self.gameLevel.update()
-        self.player.update(self.frameCout)
-        self.enemyList.update(self.frameCout, self.frameRate)
-        self.shotList.update()
+        if self.gameRuning:
+            self.gameLevel.update()
+            self.player.update(self.frameCout)
+            self.enemyList.update(self.frameCout, self.frameRate)
+            self.shotList.update()
 
     def draw(self):
         pyxel.cls(0)
-        if self.gameLevel.gameRuning:
+        if self.gameRuning:
             self.shotList.draw()
             self.enemyList.draw(self.frameCout, self.frameRate)
             self.hud.draw()
@@ -92,13 +103,18 @@ class Game:
             self.gameOverScreen.draw()
     
     def keys(self):
-        if pyxel.btnp(pyxel.KEY_ESCAPE): pyxel.quit()
-        if pyxel.btn(pyxel.KEY_LEFT) and self.player.x >= 0+1: self.player.walk_left()
-        if pyxel.btn(pyxel.KEY_RIGHT) and self.player.x <= self.screen_width - 17: self.player.walk_rigth()
+        if pyxel.btnp(pyxel.KEY_ESCAPE): 
+            pyxel.quit()
+        
+        if pyxel.btn(pyxel.KEY_LEFT) and self.player.x >= 0+1: 
+            self.player.walk_left()
+        
+        if pyxel.btn(pyxel.KEY_RIGHT) and self.player.x <= self.screen_width - 17: 
+            self.player.walk_rigth()
 
-        if pyxel.btnp(pyxel.KEY_RETURN):
-           self.enemyList.randomEnemy()
-           
+        if pyxel.btnp(pyxel.KEY_RETURN) and self.gameLevel.gameOver:
+            self.resetGame()
+
         if pyxel.btnp(pyxel.KEY_SPACE) and not self.player.inCooldown: 
             self.shotList.shot(self.player.x+7, self.player.y, -4, True)
             self.player.shot(self.frameCout)
@@ -119,8 +135,17 @@ class Game:
                     self.player.kill()
                     self.shotList.destroy(colisionList[i][1].id)
 
+            if colisionList[i][0].type == "Boss" and colisionList[i][1].type == "Shot":
+                if self.shotList.getByid(colisionList[i][1].id).player:
+                    self.shotList.destroy(colisionList[i][1].id)
+                    boss = self.enemyList.getById(colisionList[i][0].id)
+                    boss.colisionPlayerShot()
+
     def resetGame(self):
-        pass
+        self.player.reset()
+        self.shotList.reset()
+        self.enemyList.reset()
+        self.gameLevel.reset()
 
     def load_imagens(self):
         pyxel.images[0].load(0, 0, "../SpritesSheets/Sprites.png")

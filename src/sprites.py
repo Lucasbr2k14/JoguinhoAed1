@@ -2,6 +2,8 @@ import pyxel
 from random import randint
 from colision import HitBox, Collision
 
+# Classe Sprite
+# Classe onde define os principais metodos e propriedades para ser usados os sprites
 class Sprite:
     def __init__(self, x:float, y:float, velocity:float) -> None:
         self.x:float = x
@@ -18,9 +20,7 @@ class Sprite:
         self.y = self.y - self.velocity
     
     def walk_down(self, velocity:int=1):
-
         self.y = self.y + self.velocity * velocity
-
 
     def walk_rigth(self):
         self.x = self.x + self.velocity
@@ -29,6 +29,8 @@ class Sprite:
         self.x = self.x - self.velocity
 
 
+# Classe do player que herda da classe sprites
+# Classe onde cuida da vida do player, cooldown dos tiros, quantas mortes o player fez e desenhar o ele na tela
 class Player(Sprite):
     def __init__(self) -> None:        
         super().__init__(92, 160, 2)
@@ -66,35 +68,68 @@ class Player(Sprite):
     def addScore(self, poits:int) -> None:
         self.score += poits
 
-    def gameOver(self):
-        pass
+    def reset(self):
+        self.maxLives:int = 3
+        self.score:int = 0
+        self.kills:int = 0
+        self.levelKills:int = 0
+        self.sprite:int = 6
+        self.inCooldown:bool = False
+        self.lastShotFrame:int = 0
+        self.lives:int = self.maxLives
 
     def __cooldownShot(self, frameCount:int) -> None:
         if (frameCount >= self.lastShotFrame + self.colldownTime) and self.inCooldown:
             self.inCooldown = False
 
     def draw(self) -> None:
-        # self.hitbox.draw()
         pyxel.blt(self.x, self.y, 0, 16 * self.index_image[0], 16 * self.index_image[1], 16,16, 0)
 
 
 class Boss(Sprite):
     def __init__(self, x:float, y:float, id:int) -> None:
-        super().__init__(x, y, 2)
+        super().__init__(x, y, 0.5)
 
         self.live:int = 100
         self.id:int = id
 
+        self.coolDownTime:float =  30 * 2
+        self.lastShotFrame:int = 0
+
         self.indexImage:list = [0,7] 
         self.animationRate:float = 30 * 1/2
         self.lastAnimateFrame:int = 0
-        self.hitBox:HitBox = HitBox(type(self), self.id, self.x, self.y, 32, 32)
+        self.hitBox:HitBox = HitBox(type(self), self.id, self.x, self.y, 27, 27)
+
 
     def update(self, frameCount:int, frameRate:int, playerX:int, playerY:int, shotList) -> None:
-        pass
+        self.walk(playerX, playerY)
+        self.shot(frameCount, shotList)
+        self.hitBox.update(self.x, self.y)
+
+
+    def walk(self, playerX:int, playerY:int):
+        if playerX - 8 < self.x:
+            self.walk_left()
+
+        if playerX - 8 > self.x:
+            self.walk_rigth()
+
+    def shot(self, frameCount:int, shotList):
+
+        if (frameCount >= self.lastShotFrame + self.coolDownTime):
+            shotList.shot(self.x, self.y + 29, 2, False)
+            shotList.shot(self.x + 16, self.y + 29, 2, False)
+            shotList.shot(self.x + 32, self.y + 29, 2, False)
+            self.lastShotFrame = frameCount
+
+    def colisionPlayerShot(self):
+        self.live -= 10
+
+    def destroy(self):
+        self.hitBox.destroy()
 
     def draw(self, frameCount:int, frameRate:int) -> None:
-        self.hitBox.draw()
         if frameCount >= self.lastAnimateFrame + self.animationRate:
             self.indexImage[0] = (self.indexImage[0] + 1) % 4
             self.lastAnimateFrame = frameCount
@@ -112,7 +147,7 @@ class Enemy(Sprite):
         self.id:int = id
         self.type:int = enemy
         self.lastShotFrame:int = 0
-        self.probabilityShot:int = 1000
+        self.probabilityShot:int = 100
         self.indexImage:list = [0,0]
         self.imageLoop:int = 0
         self.walkRigth:bool = True
@@ -138,9 +173,6 @@ class Enemy(Sprite):
     def updateStepInterval(self, stepInterval:float) -> None:
         self.stepInterval = stepInterval
 
-    def draw(self, frameCount:int, frameRate:int) -> None:
-        self.indexImage[0] = (self.type * 2) + self.imageLoop
-        pyxel.blt(self.x, self.y, 0, 16 * self.indexImage[0], 16 * self.indexImage[1], 16,16,0)
 
     def __walk(self, frameCount:int, frameRate:int):
         if frameCount >= self.nextStep:
@@ -159,3 +191,6 @@ class Enemy(Sprite):
 
             self.nextStep = frameCount +  self.stepInterval
         
+    def draw(self, frameCount:int, frameRate:int) -> None:
+        self.indexImage[0] = (self.type * 2) + self.imageLoop
+        pyxel.blt(self.x, self.y, 0, 16 * self.indexImage[0], 16 * self.indexImage[1], 16,16,0)

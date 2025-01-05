@@ -22,7 +22,7 @@ class ShotList:
             shot.update()
         if len(self.shotList) > 0:
             for j in range(len(self.shotList)-1,  -1, -1):
-                if self.shotList[j].y >= 200 or self.shotList[j].y <= 0:
+                if self.shotList[j].y >= 200 or self.shotList[j].y <= 20:
                     self.destroy(self.shotList[j].id)
 
     def getByid(self, id:int) -> Shot | None:
@@ -30,6 +30,10 @@ class ShotList:
             if self.shotList[i].id == id:
                 return self.shotList[i]
         return None
+
+    def clearShots(self):
+        for i in range(len(self.shotList)):
+            self.destroy(self.shotList[i].id)
 
     def destroy(self, id:int) -> None:
         self.destroyList.append(id)
@@ -44,6 +48,10 @@ class ShotList:
                         self.shotList.pop(j)
             self.destroyList.pop(i)
     
+    def reset(self) -> None:
+        self.clearShots()
+        self.id = 0
+
     def draw(self):
         for shot in self.shotList:
             shot.draw()
@@ -56,7 +64,7 @@ class EnemyList:
         self.collision:Collision = collision
         self.screenHeigth:int = screenHeigth
         self.screenWidth:int = screenWidth
-        self.listEnemy:list[Enemy] = []
+        self.listEnemy:list[Enemy | Boss] = []
         self.destroyList:list[int] = []
         self.enemyStepInterval:float = 0
         self.id:int = 0
@@ -83,9 +91,12 @@ class EnemyList:
         for enemy in self.listEnemy:
             if type(enemy).__name__ != "Boss":
                 enemy.updateStepInterval(self.enemyStepInterval)
+            if type(enemy).__name__ == "Boss" and enemy.live <= 0:
+                self.destroy(enemy.id)
+
             enemy.update(frameCount, frameRate, self.player.x, self.player.y, self.shotList)
 
-    def getById(self, id:int) -> Enemy:
+    def getById(self, id:int) -> Enemy | Boss:
         for i in range(len(self.listEnemy)):
             if self.listEnemy[i].id == id:
                 return self.listEnemy[i]
@@ -101,8 +112,17 @@ class EnemyList:
                     if self.listEnemy[j].id == id:
                         self.listEnemy[j].destroy()
                         self.listEnemy.pop(j)
-            self.destroyList.pop(i)
+                self.destroyList.pop(i)
     
+    def clearEnemy(self):
+        for i in range(len(self.listEnemy)):
+            self.destroy(self.listEnemy[i].id)
+    
+    def reset(self) -> None:
+        self.clearEnemy()
+        self.enemyStepInterval = 0
+        self.id = 0
+
     def draw(self, frameCount:int, frameRate:int) -> None:
         for enemy in self.listEnemy:
             enemy.draw(frameCount, frameRate)
