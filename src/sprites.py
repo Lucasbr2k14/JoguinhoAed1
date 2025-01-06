@@ -34,7 +34,7 @@ class Sprite:
 class Player(Sprite):
     def __init__(self) -> None:        
         super().__init__(92, 160, 2)
-        self.colldownTime:float = 30 * 1/10
+        self.colldownTime:float = 30 * 1/2
         self.maxLives:int = 3
         self.score:int = 0
         self.kills:int = 0
