@@ -50,7 +50,7 @@ Rodando o jogo
 
 ### No terminal, execute o comando:
 ```sh
-python main.py
+python src/main.py
 ```
 Controles
 ```
