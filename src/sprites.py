@@ -57,6 +57,9 @@ class Player(Sprite):
     def kill(self) -> None:
         self.lives -= 1
 
+    def instaKill(self) -> None:
+        self.lives = -1
+
     def killEnemy(self):
         self.kills += 1
         self.levelKills += 1
@@ -170,9 +173,9 @@ class Enemy(Sprite):
     def destroy(self):
         self.hitbox.destroy()
 
-    def updateStepInterval(self, stepInterval:float) -> None:
+    def updatePropietes(self, stepInterval:float, probabilityShot:int) -> None:
         self.stepInterval = stepInterval
-
+        self.probabilityShot = probabilityShot
 
     def __walk(self, frameCount:int, frameRate:int):
         if frameCount >= self.nextStep:

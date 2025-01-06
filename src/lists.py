@@ -67,6 +67,7 @@ class EnemyList:
         self.listEnemy:list[Enemy | Boss] = []
         self.destroyList:list[int] = []
         self.enemyStepInterval:float = 0
+        self.probabilityShot:int = 1000
         self.id:int = 0
 
     def randomEnemy(self) -> None:
@@ -90,10 +91,9 @@ class EnemyList:
         self.__deleteClass()
         for enemy in self.listEnemy:
             if type(enemy).__name__ != "Boss":
-                enemy.updateStepInterval(self.enemyStepInterval)
+                enemy.updatePropietes(self.enemyStepInterval, self.probabilityShot)
             if type(enemy).__name__ == "Boss" and enemy.live <= 0:
                 self.destroy(enemy.id)
-
             enemy.update(frameCount, frameRate, self.player.x, self.player.y, self.shotList)
 
     def getById(self, id:int) -> Enemy | Boss:
@@ -126,3 +126,4 @@ class EnemyList:
     def draw(self, frameCount:int, frameRate:int) -> None:
         for enemy in self.listEnemy:
             enemy.draw(frameCount, frameRate)
+            
